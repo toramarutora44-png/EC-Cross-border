@@ -4,7 +4,7 @@ export default function Home() {
   return (
     <main className="bg-white text-gray-900">
 
-      {/* HERO（画像＋グラデーション） */}
+      {/* HERO */}
       <section className="relative min-h-screen flex items-center justify-center text-center px-6">
         <div className="absolute inset-0">
           <img
@@ -22,13 +22,15 @@ export default function Home() {
             現地選定 × 日本基準検品
           </p>
 
-          <button className="mt-10 px-8 py-4 rounded-full text-white font-bold bg-gradient-to-r from-red-500 to-orange-500 shadow-lg">
-            LINEで最新トレンドを受け取る
-          </button>
+          <a href="https://lin.ee/wuKhILR" target="_blank">
+            <button className="mt-10 px-8 py-4 rounded-full text-white font-bold bg-gradient-to-r from-red-500 to-orange-500 shadow-lg">
+              LINEで最新トレンドを受け取る
+            </button>
+          </a>
         </div>
       </section>
 
-      {/* 信頼カード */}
+      {/* 信頼 */}
       <section className="py-16 px-6 grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
         {[
           "海外営業20年",
@@ -53,7 +55,6 @@ export default function Home() {
         </h2>
 
         <p className="text-gray-600 max-w-xl mx-auto">
-          洪崖洞の幻想的な街並みのように、
           現地のリアルなトレンドを直接届けます。
         </p>
       </section>
@@ -76,6 +77,22 @@ export default function Home() {
             </div>
           ))}
         </div>
+
+        {/* LINE誘導 */}
+        <div className="text-center mt-10">
+          <p className="mb-3">
+            迷ったらLINEで相談できます😊<br />
+            不确定的话可以LINE咨询😊
+          </p>
+
+          <a href="https://lin.ee/wuKhILR" target="_blank">
+            <img
+              src="https://scdn.line-apps.com/n/line_add_friends/btn/ja.png"
+              alt="LINEで相談"
+              className="mx-auto h-12"
+            />
+          </a>
+        </div>
       </section>
 
       {/* CTA */}
@@ -84,9 +101,11 @@ export default function Home() {
           中国トレンドをいち早く受け取る
         </h2>
 
-        <button className="mt-6 px-10 py-4 rounded-full text-white font-bold bg-gradient-to-r from-red-500 to-orange-500">
-          今すぐLINE登録
-        </button>
+        <a href="https://lin.ee/wuKhILR" target="_blank">
+          <button className="mt-6 px-10 py-4 rounded-full text-white font-bold bg-gradient-to-r from-red-500 to-orange-500">
+            今すぐLINE登録
+          </button>
+        </a>
       </section>
 
     </main>

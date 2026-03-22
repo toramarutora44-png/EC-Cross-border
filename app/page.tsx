@@ -1,65 +1,81 @@
-import Image from "next/image";
-
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="bg-white text-gray-900">
+
+      {/* HERO */}
+      <section className="min-h-screen flex flex-col justify-center items-center text-center px-6">
+        <h1 className="text-2xl md:text-4xl font-bold max-w-xl leading-relaxed">
+          “中国製＝微妙”って、まだ思ってる？
+        </h1>
+
+        <p className="mt-6 text-lg">
+          現地で選び、日本基準で検品。
+        </p>
+
+        <p className="text-lg font-semibold">
+          安いのに、ちゃんと良い。
+        </p>
+
+        <button className="mt-10 px-8 py-4 rounded-xl text-white font-bold bg-gradient-to-r from-blue-500 to-purple-500">
+          無料で相談する
+        </button>
+      </section>
+
+      {/* 安心 */}
+      <section className="py-14 text-center bg-gray-50">
+        <h2 className="text-xl font-bold mb-6">安心して選べる理由</h2>
+        <p>✔ 全商品検品済み</p>
+        <p>✔ 日本基準チェック</p>
+        <p>✔ 不良は交換対応</p>
+      </section>
+
+      {/* 価格 */}
+      <section className="py-14 text-center">
+        <h2 className="text-xl font-bold mb-6">価格の違い</h2>
+        <p className="text-gray-500">日本：¥6,000</p>
+        <p className="text-3xl font-bold text-blue-600 mt-2">中国：¥2,000</p>
+        <p className="mt-4">同じクオリティ、もっと手頃に。</p>
+      </section>
+
+      {/* 商品 */}
+      <section className="py-14 px-6">
+        <h2 className="text-xl font-bold text-center mb-8">人気商品</h2>
+
+        <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="p-4 shadow rounded-xl text-center">
+            <div className="h-32 bg-gray-200 mb-3"></div>
+            <p>高見えバッグ</p>
+            <p className="font-bold">¥3,980</p>
+          </div>
+
+          <div className="p-4 shadow rounded-xl text-center">
+            <div className="h-32 bg-gray-200 mb-3"></div>
+            <p>ギフト人形</p>
+            <p className="font-bold">¥1,500</p>
+          </div>
+
+          <div className="p-4 shadow rounded-xl text-center">
+            <div className="h-32 bg-gray-200 mb-3"></div>
+            <p>雑貨</p>
+            <p className="font-bold">¥2,200</p>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </section>
+
+      {/* 差別化 */}
+      <section className="py-14 text-center bg-gray-50">
+        <h2 className="text-xl font-bold mb-4">違いは選び方</h2>
+        <p className="text-gray-600">他：バズ・広告</p>
+        <p className="font-semibold">自分：現地選定＋検品</p>
+      </section>
+
+      {/* CTA */}
+      <section className="py-20 text-center">
+        <button className="px-8 py-4 rounded-xl text-white font-bold bg-gradient-to-r from-blue-500 to-purple-500">
+          無料で相談する
+        </button>
+      </section>
+
+    </main>
   );
 }

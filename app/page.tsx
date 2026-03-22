@@ -1,3 +1,5 @@
+"use client";
+
 export default function Home() {
   return (
     <main className="bg-white text-gray-900">
@@ -5,7 +7,7 @@ export default function Home() {
       {/* HERO */}
       <section className="min-h-screen flex flex-col justify-center items-center text-center px-6">
         <h1 className="text-2xl md:text-4xl font-bold max-w-xl leading-relaxed">
-          “中国製＝微妙”って、まだ思ってる？
+          中国トレンドを、日本で最適に届ける
         </h1>
 
         <p className="mt-6 text-lg">
@@ -13,28 +15,67 @@ export default function Home() {
         </p>
 
         <p className="text-lg font-semibold">
-          安いのに、ちゃんと良い。
+          安くても、ちゃんと良い。
         </p>
 
-        <button className="mt-10 px-8 py-4 rounded-xl text-white font-bold bg-gradient-to-r from-blue-500 to-purple-500">
-          無料で相談する
-        </button>
+        <div className="mt-10">
+          <p className="text-sm text-gray-500 mb-2">
+            中国で今売れている商品を厳選して配信中
+          </p>
+          <button className="px-8 py-4 rounded-xl text-white font-bold bg-gradient-to-r from-red-500 to-orange-500">
+            LINEで最新トレンドを受け取る
+          </button>
+        </div>
       </section>
 
-      {/* 安心 */}
+      {/* 信頼 */}
       <section className="py-14 text-center bg-gray-50">
         <h2 className="text-xl font-bold mb-6">安心して選べる理由</h2>
-        <p>✔ 全商品検品済み</p>
-        <p>✔ 日本基準チェック</p>
-        <p>✔ 不良は交換対応</p>
+        <p>✔ 海外営業20年の経験</p>
+        <p>✔ 日本基準で検品</p>
+        <p>✔ 不良品は交換対応</p>
       </section>
 
-      {/* 価格 */}
-      <section className="py-14 text-center">
-        <h2 className="text-xl font-bold mb-6">価格の違い</h2>
-        <p className="text-gray-500">日本：¥6,000</p>
-        <p className="text-3xl font-bold text-blue-600 mt-2">中国：¥2,000</p>
-        <p className="mt-4">同じクオリティ、もっと手頃に。</p>
+      {/* 運営者 */}
+      <section className="py-16 px-6 text-center">
+        <h2 className="text-xl md:text-2xl font-bold mb-6">
+          なぜ安心できるのか
+        </h2>
+
+        <p className="max-w-2xl mx-auto text-gray-600">
+          約20年にわたり海外営業・国際取引に携わってきた経験をもとに、
+          商品の品質・価格・信頼性を重視しています。
+        </p>
+
+        <p className="mt-6 max-w-2xl mx-auto text-gray-600">
+          中国現地には信頼できるパートナーが在籍し、
+          商品選定から検品まで一貫して管理しています。
+        </p>
+
+        <p className="mt-6 font-semibold">
+          安さだけでなく「安心して使えること」まで責任を持ちます。
+        </p>
+      </section>
+
+      {/* 重慶 */}
+      <section className="py-16 px-6 bg-gray-50 text-center">
+        <h2 className="text-xl md:text-2xl font-bold mb-6">
+          中国・重慶から直接お届け
+        </h2>
+
+        <p className="max-w-2xl mx-auto text-gray-600">
+          中国5大都市の一つ・重慶を拠点に、
+          現地で商品を直接選定しています。
+        </p>
+
+        <p className="mt-6 max-w-2xl mx-auto text-gray-600">
+          洪崖洞の幻想的な街並みのように、
+          リアルな文化とトレンドが集まる場所です。
+        </p>
+
+        <p className="mt-6 font-semibold">
+          現地で選び、現地で確かめ、日本へ届ける
+        </p>
       </section>
 
       {/* 商品 */}
@@ -62,17 +103,19 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 差別化 */}
-      <section className="py-14 text-center bg-gray-50">
-        <h2 className="text-xl font-bold mb-4">違いは選び方</h2>
-        <p className="text-gray-600">他：バズ・広告</p>
-        <p className="font-semibold">自分：現地選定＋検品</p>
+      {/* 納期 */}
+      <section className="py-10 text-center text-sm text-gray-500">
+        ご注文後、約7〜10日でお届けします（現地検品・国際配送のため）
       </section>
 
       {/* CTA */}
       <section className="py-20 text-center">
-        <button className="px-8 py-4 rounded-xl text-white font-bold bg-gradient-to-r from-blue-500 to-purple-500">
-          無料で相談する
+        <p className="text-sm text-gray-500 mb-2">
+          中国で今売れている商品を厳選配信中
+        </p>
+
+        <button className="px-8 py-4 rounded-xl text-white font-bold bg-gradient-to-r from-red-500 to-orange-500">
+          LINEで最新トレンドを受け取る
         </button>
       </section>
 

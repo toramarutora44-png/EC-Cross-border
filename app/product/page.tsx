@@ -5,7 +5,7 @@ export default function Product() {
     <main className="bg-white text-black">
 
       {/* メイン */}
-      <img src="/1.jpg" className="w-full" />
+      <img src="/products/doll/doll1/main.jpg" className="w-full" />
 
       <div className="text-center mt-4 font-bold text-xl">
         これ、可愛すぎて無理
@@ -13,9 +13,9 @@ export default function Product() {
 
       {/* 詳細 */}
       <div className="p-4 space-y-6">
-        <img src="/2.jpg" className="rounded-xl" />
-        <img src="/3.jpg" className="rounded-xl" />
-        <img src="/4.jpg" className="rounded-xl" />
+        <img src="/products/doll/doll1/detail.jpg" className="rounded-xl" />
+        <img src="/products/doll/doll1/set.jpg" className="rounded-xl" />
+        <img src="/products/doll/doll1/after.png" className="rounded-xl" />
       </div>
 
       {/* 口コミ */}

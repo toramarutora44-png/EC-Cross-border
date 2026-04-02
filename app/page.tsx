@@ -326,38 +326,58 @@ export default function Home() {
         </div>
       )}
 
-      {/* Why Us (detailed) */}
+      {/* Why Us (visual cards) */}
       <section className="px-4 pt-10">
         <h2 className="text-base font-bold mb-4">{l.whyTitle}</h2>
         <div className="space-y-3">
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-start gap-3">
-              <span className="bg-green-100 text-green-700 rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-bold text-sm">&#10003;</span>
-              <div>
+          {/* Card 1: Inspection */}
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+            <img
+              src="https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?w=600&q=80"
+              alt=""
+              className="w-full h-36 object-cover"
+            />
+            <div className="p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="bg-green-100 text-green-700 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">&#10003;</span>
                 <p className="font-bold text-sm">{l.why1title}</p>
-                <p className="text-xs text-gray-500 mt-1 leading-relaxed">{l.why1desc}</p>
               </div>
+              <p className="text-xs text-gray-500 leading-relaxed">{l.why1desc}</p>
             </div>
           </div>
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-start gap-3">
-              <span className="bg-orange-100 text-orange-600 rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-bold text-sm">!</span>
-              <div>
+          {/* Card 2: vs Cheap */}
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+            <img
+              src="https://images.unsplash.com/photo-1553413077-190dd305871c?w=600&q=80"
+              alt=""
+              className="w-full h-36 object-cover"
+            />
+            <div className="p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="bg-orange-100 text-orange-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">!</span>
                 <p className="font-bold text-sm">{l.why2title}</p>
-                <p className="text-xs text-gray-500 mt-1 leading-relaxed">{l.why2desc}</p>
               </div>
+              <p className="text-xs text-gray-500 leading-relaxed">{l.why2desc}</p>
             </div>
           </div>
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-start gap-3">
-              <span className="bg-blue-100 text-blue-600 rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-bold text-sm">&#9733;</span>
-              <div>
+          {/* Card 3: Quality */}
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+            <img
+              src="https://images.unsplash.com/photo-1665686306574-1ace09918530?w=600&q=80"
+              alt=""
+              className="w-full h-36 object-cover"
+            />
+            <div className="p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">&#9733;</span>
                 <p className="font-bold text-sm">{l.why3title}</p>
-                <p className="text-xs text-gray-500 mt-1 leading-relaxed">{l.why3desc}</p>
               </div>
+              <p className="text-xs text-gray-500 leading-relaxed">{l.why3desc}</p>
             </div>
           </div>
         </div>
+        {/* More detail link */}
+        <a href="/about" className="block text-center text-sm text-blue-500 underline mt-4">{l.viewAll}</a>
       </section>
 
       {/* LINE CTA */}

@@ -88,7 +88,7 @@ export default function AboutPage() {
   const l = t[lang];
 
   return (
-    <main className="bg-white text-black min-h-screen pb-20">
+    <main className="bg-white text-black min-h-screen pb-20 max-w-md mx-auto">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-100 flex items-center justify-between px-4 py-3">
         <a href="/" className="text-sm text-gray-600">&#8592; {l.back}</a>

@@ -23,9 +23,9 @@ const t = {
     s4step2: "現地スタッフが検品",
     s4step3: "安全梱包で発送",
     s4step4: "約7〜14日でお届け",
-    s5title: "万が一のときも安心",
-    s5p1: "届いた商品に不具合があった場合は、返品・交換に対応いたします。",
-    s5p2: "サイズ感や色味が気になる方は、ご注文前にLINEでお気軽にご相談ください。実物の写真をお送りすることも可能です。",
+    s5title: "ご購入前にご理解ください",
+    s5p1: "当店はお手頃価格で中国のトレンドアイテムをお届けしています。検品は行っておりますが、高級ブランド品と同等の品質を保証するものではありません。価格相応の品質であることをご了承ください。",
+    s5p2: "明らかな不良品（破損・大きな汚れ等）の場合は返品・交換に対応いたします。サイズ感や色味が気になる方は、ご注文前にLINEでお気軽にご相談ください。",
     cta: "商品を見る",
     lineAsk: "LINEで相談する",
   },
@@ -49,9 +49,9 @@ const t = {
     s4step2: "当地员工验货",
     s4step3: "安全包装发货",
     s4step4: "约7〜14天送达",
-    s5title: "售后保障",
-    s5p1: "如收到的商品有质量问题，我们提供退换货服务。",
-    s5p2: "对尺寸或颜色有疑问的话，下单前可通过LINE咨询，我们可以发实物照片。",
+    s5title: "购买前请了解",
+    s5p1: "本店以实惠的价格提供中国潮流商品。虽然我们会进行质检，但不保证与高端品牌同等品质。请理解商品品质与价格相符。",
+    s5p2: "如收到明显不良品（破损、严重污渍等），我们提供退换货服务。对尺寸或颜色有疑问，下单前可通过LINE咨询。",
     cta: "查看商品",
     lineAsk: "LINE咨询",
   },
@@ -75,9 +75,9 @@ const t = {
     s4step2: "On-site inspection",
     s4step3: "Safe packaging & shipping",
     s4step4: "Delivered in ~7-14 days",
-    s5title: "Peace of mind guarantee",
-    s5p1: "If you receive a defective product, we offer returns and exchanges.",
-    s5p2: "Unsure about size or color? Ask us via LINE before ordering — we can send photos of the actual product.",
+    s5title: "Before you buy",
+    s5p1: "We offer trendy Chinese items at affordable prices. While we inspect every item, we do not guarantee the same quality as luxury brands. Please understand that quality reflects the price point.",
+    s5p2: "For obvious defects (damage, major stains, etc.), we offer returns and exchanges. If you have concerns about size or color, feel free to ask via LINE before ordering.",
     cta: "Browse Products",
     lineAsk: "Ask via LINE",
   },
@@ -209,10 +209,10 @@ export default function AboutPage() {
       {/* Section 5: Guarantee */}
       <section className="px-4">
         <div className="flex items-center gap-2 mb-3">
-          <span className="bg-green-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs font-bold">5</span>
-          <h2 className="text-lg font-bold">{l.s5title}</h2>
+          <span className="bg-gray-400 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs font-bold">5</span>
+          <h2 className="text-lg font-bold text-gray-600">{l.s5title}</h2>
         </div>
-        <div className="bg-green-50 rounded-2xl p-5 space-y-3 text-sm text-gray-700 leading-relaxed">
+        <div className="bg-gray-50 rounded-2xl p-5 space-y-3 text-sm text-gray-500 leading-relaxed">
           <p>{l.s5p1}</p>
           <p>{l.s5p2}</p>
         </div>

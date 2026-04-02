@@ -147,6 +147,36 @@ export default function Home() {
     return seededRandom(id + "stock") % 5 === 0;
   }
 
+  // Full page skeleton while loading
+  if (loading) {
+    return (
+      <main className="bg-gray-50 min-h-screen">
+        <header className="sticky top-0 z-50 bg-white shadow-sm px-4 py-3">
+          <div className="h-6 bg-gray-200 rounded w-32 animate-pulse" />
+          <div className="flex gap-2 mt-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-8 bg-gray-200 rounded-full w-16 animate-pulse" />
+            ))}
+          </div>
+        </header>
+        <div className="px-4 pt-4">
+          <div className="w-full aspect-[4/3] bg-gray-200 rounded-2xl animate-pulse" />
+        </div>
+        <div className="px-4 pt-4 grid grid-cols-2 gap-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-sm animate-pulse">
+              <div className="w-full aspect-square bg-gray-200" />
+              <div className="p-3 space-y-2">
+                <div className="h-4 bg-gray-200 rounded w-3/4" />
+                <div className="h-4 bg-gray-200 rounded w-1/2" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="bg-gray-50 text-black min-h-screen pb-20">
       {/* Sticky Header */}
@@ -255,21 +285,7 @@ export default function Home() {
       </section>
 
       {/* Product Grid */}
-      {loading ? (
-        <section className="px-4 pt-4">
-          <div className="grid grid-cols-2 gap-3">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-sm animate-pulse">
-                <div className="w-full aspect-square bg-gray-200" />
-                <div className="p-3 space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-3/4" />
-                  <div className="h-4 bg-gray-200 rounded w-1/2" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : filtered.length > 0 ? (
+      {filtered.length > 0 ? (
         <section className="px-4 pt-4">
           <div className="grid grid-cols-2 gap-3">
             {filtered.map((p, index) => {

@@ -10,6 +10,7 @@ type Product = {
   price: number | null;
   images: string[] | null;
   category: string | null;
+  features: string | null;
   created_at: string;
 };
 
@@ -26,13 +27,13 @@ const t = {
   ja: {
     brand: "Trend Select",
     tagline: "中国で話題のアイテムを、日本へ",
+    heroSub: "現地スタッフが厳選・検品済み",
     new: "NEW",
-    hot: "人気",
     yen: "¥",
     noProducts: "商品を準備中です...",
     line: "LINEで問い合わせ",
     lineDesc: "在庫確認・ご質問はこちら",
-    whyTitle: "なぜTrend Selectなのか",
+    whyTitle: "安心してお買い物できる理由",
     why1title: "現地で検品済み",
     why1desc: "中国在住のスタッフが一点ずつ実物を確認。不良品はその場で返品するから、届くのは合格品だけ。",
     why2title: "格安通販との違い",
@@ -41,18 +42,19 @@ const t = {
     why3desc: "世界の一流ブランドも中国で製造。良い工場の製品は品質が高い。私たちはその\"良い店\"だけを厳選しています。",
     sold: "人が購入",
     fewLeft: "残りわずか",
-    viewDetail: "詳細を見る",
+    pickup: "PICK UP",
+    viewAll: "すべて見る",
   },
   zh: {
     brand: "Trend Select",
     tagline: "中国热门好物，直达日本",
+    heroSub: "当地员工精选・已质检",
     new: "新品",
-    hot: "热卖",
     yen: "¥",
     noProducts: "商品准备中...",
     line: "LINE咨询",
     lineDesc: "库存确认·问题咨询",
-    whyTitle: "为什么选择Trend Select",
+    whyTitle: "放心购物的理由",
     why1title: "当地验货",
     why1desc: "中国当地员工逐件检查实物，不良品当场退货，只发合格商品。",
     why2title: "与廉价平台的区别",
@@ -61,18 +63,19 @@ const t = {
     why3desc: "世界一线品牌也在中国生产。好工厂的产品质量很高，我们只精选\"好店\"。",
     sold: "人已购买",
     fewLeft: "库存紧张",
-    viewDetail: "查看详情",
+    pickup: "精选",
+    viewAll: "查看全部",
   },
   en: {
     brand: "Trend Select",
     tagline: "Trending from China, delivered to Japan",
+    heroSub: "Handpicked & inspected by our local staff",
     new: "NEW",
-    hot: "HOT",
     yen: "¥",
     noProducts: "Products coming soon...",
     line: "Contact via LINE",
     lineDesc: "Stock check & inquiries",
-    whyTitle: "Why Trend Select?",
+    whyTitle: "Why you can shop with confidence",
     why1title: "Inspected on-site",
     why1desc: "Our staff in China checks every item in person. Defective products are returned on the spot — only approved items are shipped.",
     why2title: "Unlike cheap platforms",
@@ -81,11 +84,11 @@ const t = {
     why3desc: "Top global brands manufacture in China. Good factories produce great products — we handpick only the best.",
     sold: "sold",
     fewLeft: "Few left",
-    viewDetail: "View details",
+    pickup: "PICK UP",
+    viewAll: "View all",
   },
 };
 
-// Seed-based pseudo random for consistent display per product
 function seededRandom(seed: string) {
   let hash = 0;
   for (let i = 0; i < seed.length; i++) {
@@ -113,7 +116,7 @@ export default function Home() {
     async function load() {
       const { data } = await supabase
         .from("products")
-        .select("id, name, price, images, category, created_at")
+        .select("id, name, price, images, category, features, created_at")
         .order("created_at", { ascending: false });
       if (data) setProducts(data);
       setLoading(false);
@@ -126,6 +129,8 @@ export default function Home() {
       ? products
       : products.filter((p) => p.category === activeCategory);
 
+  const featured = products.length > 0 ? products[0] : null;
+
   function isNew(dateStr: string) {
     return Date.now() - new Date(dateStr).getTime() < 3 * 24 * 60 * 60 * 1000;
   }
@@ -135,8 +140,7 @@ export default function Home() {
   }
 
   function getRating(id: string) {
-    const base = (seededRandom(id + "r") % 10);
-    return (4.0 + base / 10).toFixed(1);
+    return (4.0 + (seededRandom(id + "r") % 10) / 10).toFixed(1);
   }
 
   function isFewLeft(id: string) {
@@ -158,19 +162,19 @@ export default function Home() {
                 </span>
               )}
             </a>
-          <div className="flex gap-0.5 text-[10px] bg-gray-100 px-0.5 py-0.5 rounded-full">
-            {(["ja", "zh", "en"] as const).map((code) => (
-              <button
-                key={code}
-                onClick={() => setLang(code)}
-                className={`px-2 py-1 rounded-full transition ${
-                  lang === code ? "bg-black text-white" : ""
-                }`}
-              >
-                {code === "ja" ? "JP" : code === "zh" ? "CN" : "EN"}
-              </button>
-            ))}
-          </div>
+            <div className="flex gap-0.5 text-[10px] bg-gray-100 px-0.5 py-0.5 rounded-full">
+              {(["ja", "zh", "en"] as const).map((code) => (
+                <button
+                  key={code}
+                  onClick={() => setLang(code)}
+                  className={`px-2 py-1 rounded-full transition ${
+                    lang === code ? "bg-black text-white" : ""
+                  }`}
+                >
+                  {code === "ja" ? "JP" : code === "zh" ? "CN" : "EN"}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
         <div className="flex gap-2 px-4 pb-3 overflow-x-auto scrollbar-hide">
@@ -190,16 +194,62 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero Banner */}
+      {/* Hero: Featured Product */}
+      {featured && featured.images && featured.images[0] ? (
+        <section className="px-4 pt-4">
+          <a href={`/product/${featured.id}`} className="block relative rounded-2xl overflow-hidden">
+            <img
+              src={featured.images[0]}
+              alt={featured.name}
+              className="w-full aspect-[4/3] object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-5">
+              <span className="bg-white/20 backdrop-blur text-white text-[10px] font-bold px-3 py-1 rounded-full">
+                {l.pickup}
+              </span>
+              <h2 className="text-white text-xl font-bold mt-2">{featured.name}</h2>
+              {featured.features && (
+                <p className="text-white/80 text-xs mt-1 line-clamp-1">{featured.features}</p>
+              )}
+              <div className="flex items-center gap-3 mt-2">
+                {featured.price && (
+                  <span className="text-white text-lg font-black">
+                    {l.yen}{featured.price.toLocaleString()}
+                  </span>
+                )}
+                <span className="text-white/60 text-xs">
+                  &#9733; {getRating(featured.id)} · {getSoldCount(featured.id)}{l.sold}
+                </span>
+              </div>
+            </div>
+          </a>
+        </section>
+      ) : (
+        <section className="px-4 pt-4">
+          <div className="relative bg-gradient-to-br from-rose-500 via-pink-500 to-orange-400 rounded-2xl p-6 text-white overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-10 translate-x-10" />
+            <p className="text-[10px] font-bold tracking-widest opacity-70 mb-2">TREND SELECT</p>
+            <p className="text-xl font-bold leading-tight">{l.tagline}</p>
+            <p className="text-sm opacity-80 mt-1">{l.heroSub}</p>
+          </div>
+        </section>
+      )}
+
+      {/* Trust Bar (compact, before products) */}
       <section className="px-4 pt-4">
-        <div className="relative bg-gradient-to-br from-rose-500 via-pink-500 to-orange-400 rounded-2xl p-6 text-white overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-10 translate-x-10" />
-          <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/10 rounded-full translate-y-8 -translate-x-8" />
-          <p className="text-[10px] font-bold tracking-widest opacity-70 mb-2">TREND SELECT</p>
-          <p className="text-xl font-bold leading-tight">{l.tagline}</p>
-          <div className="flex items-center gap-2 mt-3">
-            <span className="bg-white/20 text-xs px-3 py-1 rounded-full">&#9733; 4.8</span>
-            <span className="bg-white/20 text-xs px-3 py-1 rounded-full">500+ {l.sold}</span>
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+          <div className="flex-shrink-0 flex items-center gap-1.5 bg-white rounded-full px-3 py-2 shadow-sm text-xs">
+            <span className="text-green-500 font-bold">&#10003;</span>
+            <span className="text-gray-600">{l.why1title}</span>
+          </div>
+          <div className="flex-shrink-0 flex items-center gap-1.5 bg-white rounded-full px-3 py-2 shadow-sm text-xs">
+            <span className="text-green-500 font-bold">&#10003;</span>
+            <span className="text-gray-600">{l.why2title}</span>
+          </div>
+          <div className="flex-shrink-0 flex items-center gap-1.5 bg-white rounded-full px-3 py-2 shadow-sm text-xs">
+            <span className="text-green-500 font-bold">&#10003;</span>
+            <span className="text-gray-600">{l.why3title}</span>
           </div>
         </div>
       </section>
@@ -222,7 +272,9 @@ export default function Home() {
       ) : filtered.length > 0 ? (
         <section className="px-4 pt-4">
           <div className="grid grid-cols-2 gap-3">
-            {filtered.map((p) => {
+            {filtered.map((p, index) => {
+              // Skip first product if it's featured and showing "all"
+              if (index === 0 && activeCategory === "all" && featured) return null;
               const sold = getSoldCount(p.id);
               const rating = getRating(p.id);
               const fewLeft = isFewLeft(p.id);
@@ -234,37 +286,27 @@ export default function Home() {
                 >
                   <div className="relative">
                     {p.images && p.images[0] ? (
-                      <img
-                        src={p.images[0]}
-                        alt={p.name}
-                        className="w-full aspect-square object-cover"
-                      />
+                      <img src={p.images[0]} alt={p.name} className="w-full aspect-square object-cover" />
                     ) : (
                       <div className="w-full aspect-square bg-gray-100 flex items-center justify-center text-gray-300 text-sm">
                         No Image
                       </div>
                     )}
-                    {/* Badges */}
                     <div className="absolute top-2 left-2 flex flex-col gap-1">
                       {isNew(p.created_at) && (
-                        <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                          {l.new}
-                        </span>
+                        <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{l.new}</span>
                       )}
                       {fewLeft && (
-                        <span className="bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                          {l.fewLeft}
-                        </span>
+                        <span className="bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{l.fewLeft}</span>
                       )}
                     </div>
                   </div>
                   <div className="p-3">
                     <p className="text-sm font-medium truncate">{p.name}</p>
-                    {/* Rating + Sold */}
                     <div className="flex items-center gap-1 mt-1">
                       <span className="text-yellow-500 text-xs">&#9733;</span>
                       <span className="text-xs text-gray-500">{rating}</span>
-                      <span className="text-xs text-gray-300 mx-1">|</span>
+                      <span className="text-xs text-gray-300 mx-0.5">|</span>
                       <span className="text-xs text-gray-400">{sold}{l.sold}</span>
                     </div>
                     {p.price && (
@@ -284,7 +326,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* Why Us */}
+      {/* Why Us (detailed) */}
       <section className="px-4 pt-10">
         <h2 className="text-base font-bold mb-4">{l.whyTitle}</h2>
         <div className="space-y-3">

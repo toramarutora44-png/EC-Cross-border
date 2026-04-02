@@ -142,6 +142,19 @@ export default function CheckoutPage() {
 
       if (dbError) throw dbError;
 
+      // Send LINE notification
+      await fetch("/api/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: id,
+          total,
+          customerName: name,
+          paymentMethod,
+          items: cart.map((c) => `${c.name} x${c.quantity}`),
+        }),
+      }).catch(() => {}); // Don't block order if notification fails
+
       setOrderId(id);
       setDone(true);
       clearCart();

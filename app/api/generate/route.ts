@@ -2,27 +2,58 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
-
 const SITE_URL = "https://ec-crossborder.vercel.app";
 const LINE_URL = "https://lin.ee/wuKhILR";
 
-function buildPrompt(product: any): string {
-  const imageUrl = product.images?.[0] || "";
+async function fetchTrends(): Promise<string> {
+  try {
+    const res = await fetch("https://trends.google.co.jp/trending/rss?geo=JP");
+    const text = await res.text();
+    const titles = text.match(/<title>(?!Daily Search Trends)(.*?)<\/title>/g) || [];
+    return titles.map((t) => t.replace(/<\/?title>/g, "")).slice(0, 10).join(", ");
+  } catch {
+    return "";
+  }
+}
+
+function buildPrompt(product: any, trends: string, lang: string): string {
   const productUrl = `${SITE_URL}/product/${product.id}`;
+  const langLabel = lang === "ja" ? "日本語" : lang === "zh" ? "中国語" : "英語";
 
-  return `あなたはSNSマーケティングの専門家です。以下の商品情報をもとに、TikTok・Instagram・Xそれぞれに最適化したバズる投稿を生成してください。
+  return `あなたはSNSマーケティングの専門家です。以下の商品について、${langLabel}で、TikTok・Instagram・X・Threadsそれぞれに最適化した投稿を生成してください。
 
-【重要ルール】
-- SNSのTOP20投稿を分析した結果に基づく構成にすること
-- "いいね"ではなく"売上（CVR）"を最優先にすること
-- 冒頭0.5秒で止まる強烈なフックを入れること
-- 各媒体の文化・アルゴリズムに合わせること
+【最重要：トレンド分析に基づく生成】
+以下のデータを分析し、投稿の構成・デザイン・文言に反映すること。
 
-【LP誘導ルール ※必ず守ること】
-- 投稿文の最後に必ず商品ページURL（${productUrl}）を含めること
-- 「プロフィールのリンクから」「詳細はプロフへ」などプロフィール誘導も入れること
-- DM・LINE（${LINE_URL}）からの注文も受け付ける旨を自然に入れること
-- 導線は2つ：① SNS → LP（メイン）② DM/LINE → 直接注文（サブ）
+[2025年のSNSトレンド]
+TikTok: UGC風、冒頭0.5秒テキストオーバーレイ、Before/After形式、ASMR開封、3秒ルール、ナレーション+テキスト同時表示
+Instagram: カルーセル教育コンテンツ、テキスト多めリール、ミニVlog、問題→解決構成、「保存してね」が最強CTA
+X: 実体験ベース、比較画像、数字インパクト、引用RT狙い、スレッド形式
+Threads: 会話的トーン、日常の気づき、短いストーリー、コミュニティ対話型
+
+[日本のGoogle Trendsトップキーワード]
+${trends || "取得中"}
+
+[LP/ECデザイントレンド2025]
+- ファーストビューに動画/GIF
+- 口コミ・UGCセクション強化
+- 在庫表示で緊急性
+- CTAボタンだけ目立つ色（赤/オレンジ）
+- 生活感のあるシーン写真
+
+【生成ルール】
+- ${langLabel}のネイティブ表現で書くこと（翻訳調NG）
+- "いいね"ではなく"売上（CVR）"を最優先
+- 冒頭フックは上記トレンドのパターンを使うこと
+- 投稿文の中にLP URL（${productUrl}）を自然に含めること
+- DM/LINE（${LINE_URL}）からの注文導線も入れること
+- ハッシュタグは${langLabel}圏で実際に使われているものを選ぶこと
+
+【推奨投稿時間】
+TikTok: ${lang === "ja" ? "12:00, 18:00-21:00 JST" : lang === "zh" ? "12:00, 19:00-22:00 CST" : "17:00-21:00 local"}
+Instagram: ${lang === "ja" ? "7:00-8:00, 12:00, 20:00-22:00 JST" : lang === "zh" ? "7:00, 12:00, 20:00 CST" : "11:00, 14:00 local"}
+X: ${lang === "ja" ? "7:00-8:00, 12:00, 20:00-23:00 JST" : lang === "zh" ? "8:00, 12:00, 21:00 CST" : "9:00, 12:00 local"}
+Threads: ${lang === "ja" ? "8:00, 12:00, 21:00 JST" : lang === "zh" ? "9:00, 12:00, 21:00 CST" : "10:00, 19:00 local"}
 
 【商品情報】
 商品名: ${product.name}
@@ -32,51 +63,64 @@ function buildPrompt(product: any): string {
 良い口コミ: ${product.good_review || "未入力"}
 悪い口コミ: ${product.bad_review || "未入力"}
 特徴: ${product.features || "未入力"}
-画像URL: ${imageUrl}
 商品ページURL: ${productUrl}
-LINE: ${LINE_URL}
 
-【出力形式】
-以下のJSON配列で返してください。他のテキストは不要です。
+【出力形式】JSON配列のみ。他のテキスト不要。
 [
   {
     "platform": "TikTok",
-    "caption": "投稿文（TikTok向け、短くインパクト重視、末尾にLP誘導+DM歓迎）",
-    "hashtags": "#ハッシュタグ1 #ハッシュタグ2 ...",
-    "hook": "冒頭0.5秒のフレーズ（スクロールを止める一言）",
-    "structure": "0-1秒: フック\\n1-5秒: 問題提起\\n5-15秒: 商品紹介\\n15-25秒: 使用シーン\\n25-30秒: CTA（プロフのリンクへ）",
-    "thumbnail_text": "サムネイルに載せる短いテキスト（6文字以内）",
-    "music_style": "推奨BGMのジャンル・雰囲気"
+    "caption": "投稿文（${langLabel}、末尾にLP+DM誘導）",
+    "hashtags": "#タグ1 #タグ2 ...（${langLabel}圏タグ）",
+    "hook": "冒頭0.5秒フレーズ",
+    "structure": "秒単位の動画構成",
+    "thumbnail_text": "サムネテキスト（6字以内）",
+    "music_style": "推奨BGM",
+    "best_time": "推奨投稿時間",
+    "design_tips": "画像/動画のデザインアドバイス（フォント・色・レイアウト）"
   },
   {
     "platform": "Instagram",
-    "caption": "投稿文（Instagram向け、ストーリー性重視、末尾にLP誘導+DM歓迎）",
-    "hashtags": "#ハッシュタグ1 #ハッシュタグ2 ...",
-    "hook": "冒頭のフレーズ",
-    "structure": "1枚目: フック画像\\n2枚目: 問題提起\\n3枚目: 解決策\\n4枚目: 商品紹介\\n5枚目: CTA（プロフのリンク or DM）",
-    "thumbnail_text": "画像に載せるテキスト",
-    "music_style": "リール用BGMの雰囲気"
+    "caption": "投稿文（${langLabel}、保存誘導+LP+DM）",
+    "hashtags": "#タグ1 #タグ2 ...（${langLabel}圏タグ）",
+    "hook": "冒頭フレーズ",
+    "structure": "カルーセル/リール構成",
+    "thumbnail_text": "画像テキスト",
+    "music_style": "推奨BGM",
+    "best_time": "推奨投稿時間",
+    "design_tips": "デザインアドバイス"
   },
   {
     "platform": "X",
-    "caption": "投稿文（X向け、140字以内、バズ狙い、リンク付き）",
-    "hashtags": "#ハッシュタグ1 #ハッシュタグ2",
-    "hook": "冒頭のフレーズ",
-    "structure": "1ツイート目: フック\\n2ツイート目: 詳細+画像\\n3ツイート目: LP URL + LINE誘導",
-    "thumbnail_text": "画像に載せるテキスト",
-    "music_style": "N/A"
+    "caption": "投稿文（${langLabel}、140字以内）",
+    "hashtags": "#タグ1 #タグ2",
+    "hook": "冒頭フレーズ",
+    "structure": "スレッド構成",
+    "thumbnail_text": "画像テキスト",
+    "music_style": "N/A",
+    "best_time": "推奨投稿時間",
+    "design_tips": "デザインアドバイス"
+  },
+  {
+    "platform": "Threads",
+    "caption": "投稿文（${langLabel}、会話的、500字以内）",
+    "hashtags": "#タグ1 #タグ2",
+    "hook": "冒頭フレーズ",
+    "structure": "投稿構成",
+    "thumbnail_text": "画像テキスト",
+    "music_style": "N/A",
+    "best_time": "推奨投稿時間",
+    "design_tips": "デザインアドバイス"
   }
 ]`;
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const { productId } = await req.json();
+    const { productId, lang = "ja" } = await req.json();
 
     if (!productId) {
       return NextResponse.json({ error: "商品IDが必要です" }, { status: 400 });
     }
-
     if (!OPENAI_API_KEY) {
       return NextResponse.json(
         { error: "OpenAI APIキーが設定されていません。.env.localにOPENAI_API_KEYを追加してください。" },
@@ -84,18 +128,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Fetch product from DB
-    const { data: product, error: dbError } = await supabase
-      .from("products")
-      .select("*")
-      .eq("id", productId)
-      .single();
+    const [productRes, trends] = await Promise.all([
+      supabase.from("products").select("*").eq("id", productId).single(),
+      fetchTrends(),
+    ]);
 
-    if (dbError || !product) {
+    if (productRes.error || !productRes.data) {
       return NextResponse.json({ error: "商品が見つかりません" }, { status: 404 });
     }
 
-    // Call OpenAI
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -107,15 +148,15 @@ export async function POST(req: NextRequest) {
         messages: [
           {
             role: "system",
-            content: "あなたはSNSマーケティングの専門家です。JSON配列のみを返してください。",
+            content: "あなたはSNSマーケティングの専門家です。2025年最新のトレンド分析に基づいて、売上に直結する投稿を生成します。JSON配列のみを返してください。",
           },
           {
             role: "user",
-            content: buildPrompt(product),
+            content: buildPrompt(productRes.data, trends, lang),
           },
         ],
         temperature: 0.8,
-        max_tokens: 3000,
+        max_tokens: 4000,
       }),
     });
 
@@ -129,23 +170,14 @@ export async function POST(req: NextRequest) {
     }
 
     const content = aiData.choices[0].message.content;
-
-    // Parse JSON from response
     const jsonMatch = content.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
-      return NextResponse.json(
-        { error: "生成結果の解析に失敗しました" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "生成結果の解析に失敗しました" }, { status: 500 });
     }
 
     const results = JSON.parse(jsonMatch[0]);
-
-    return NextResponse.json({ results });
+    return NextResponse.json({ results, trends_used: trends });
   } catch (err: any) {
-    return NextResponse.json(
-      { error: err.message || "エラーが発生しました" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err.message || "エラーが発生しました" }, { status: 500 });
   }
 }

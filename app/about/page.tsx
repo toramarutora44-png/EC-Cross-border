@@ -5,7 +5,7 @@ import { useState } from "react";
 const t = {
   ja: {
     back: "トップへ",
-    title: "Trend Selectについて",
+    title: "好好 HaoHaoについて",
     subtitle: "なぜ私たちから買うのがいいのか",
     s1title: "現地スタッフが検品",
     s1p1: "中国在住のスタッフが、仕入れ先の店舗に直接足を運び、一点ずつ実物を確認しています。",
@@ -31,7 +31,7 @@ const t = {
   },
   zh: {
     back: "返回首页",
-    title: "关于Trend Select",
+    title: "关于好好 HaoHao",
     subtitle: "为什么选择我们",
     s1title: "当地员工亲自验货",
     s1p1: "我们在中国的员工会亲自前往供应商店铺，逐件检查实物。",
@@ -57,7 +57,7 @@ const t = {
   },
   en: {
     back: "Home",
-    title: "About Trend Select",
+    title: "About HaoHao 好好",
     subtitle: "Why buy from us",
     s1title: "On-site quality inspection",
     s1p1: "Our staff in China personally visits supplier stores and inspects every single item.",
@@ -224,7 +224,7 @@ export default function AboutPage() {
           {l.cta}
         </a>
         <a
-          href="https://lin.ee/wuKhILR"
+          href="https://line.me/R/ti/p/@143xkgim"
           target="_blank"
           rel="noopener noreferrer"
           className="block w-full bg-[#06C755] text-white text-center py-4 rounded-xl font-bold text-sm"

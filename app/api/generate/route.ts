@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 const SITE_URL = "https://ec-crossborder.vercel.app";
-const LINE_URL = "https://lin.ee/wuKhILR";
+const LINE_URL = "https://line.me/R/ti/p/@143xkgim";
 
 async function fetchTrends(): Promise<string> {
   try {
@@ -121,9 +121,9 @@ export async function POST(req: NextRequest) {
     if (!productId) {
       return NextResponse.json({ error: "商品IDが必要です" }, { status: 400 });
     }
-    if (!OPENAI_API_KEY) {
+    if (!GEMINI_API_KEY) {
       return NextResponse.json(
-        { error: "OpenAI APIキーが設定されていません。.env.localにOPENAI_API_KEYを追加してください。" },
+        { error: "Gemini APIキーが設定されていません。" },
         { status: 500 }
       );
     }
@@ -137,28 +137,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "商品が見つかりません" }, { status: 404 });
     }
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: "あなたはSNSマーケティングの専門家です。2025年最新のトレンド分析に基づいて、売上に直結する投稿を生成します。JSON配列のみを返してください。",
-          },
-          {
-            role: "user",
-            content: buildPrompt(productRes.data, trends, lang),
-          },
-        ],
-        temperature: 0.8,
-        max_tokens: 4000,
-      }),
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: "あなたはSNSマーケティングの専門家です。2025年最新のトレンド分析に基づいて、売上に直結する投稿を生成します。JSON配列のみを返してください。\n\n" + buildPrompt(productRes.data, trends, lang)
+            }]
+          }],
+          generationConfig: { temperature: 0.8, maxOutputTokens: 4000 },
+        }),
+      }
+    );
 
     const aiData = await response.json();
 
@@ -169,7 +162,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const content = aiData.choices[0].message.content;
+    const content = aiData.candidates?.[0]?.content?.parts?.[0]?.text || "";
     const jsonMatch = content.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
       return NextResponse.json({ error: "生成結果の解析に失敗しました" }, { status: 500 });

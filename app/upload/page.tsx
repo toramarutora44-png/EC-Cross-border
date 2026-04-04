@@ -158,21 +158,21 @@ export default function UploadPage() {
     try {
       // 1. 3言語翻訳を先に生成
       let translations = {};
-      try {
-        const fillRes = await fetch("/api/fill", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name,
-            category,
-            trend_reason: trendReason || null,
-            use_scene: useScene || null,
-            good_review: goodReview || null,
-            features: features || null,
-          }),
-        });
-        if (fillRes.ok) translations = await fillRes.json();
-      } catch {}
+      const fillRes = await fetch("/api/fill", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          category,
+          trend_reason: trendReason || null,
+          use_scene: useScene || null,
+          good_review: goodReview || null,
+          features: features || null,
+        }),
+      });
+      const fillData = await fillRes.json();
+      if (!fillRes.ok) throw new Error("翻訳生成エラー: " + (fillData.error || fillRes.status));
+      translations = fillData;
 
       // 2. 商品をDBに保存（翻訳込み）
       const { data: product, error: dbError } = await supabase

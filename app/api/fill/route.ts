@@ -58,8 +58,12 @@ export async function POST(req: NextRequest) {
 
     const data = await response.json();
     const content = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return NextResponse.json({ error: "parse error" }, { status: 500 });
+    // マークダウンコードブロックを除去
+    const cleaned = content.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      return NextResponse.json({ error: "parse error", raw: content.slice(0, 200) }, { status: 500 });
+    }
 
     return NextResponse.json(JSON.parse(jsonMatch[0]));
   } catch (err: any) {

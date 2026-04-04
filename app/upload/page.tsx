@@ -173,7 +173,7 @@ export default function UploadPage() {
         }),
       });
       const fillData = await fillRes.json();
-      if (!fillRes.ok) throw new Error("翻訳生成エラー: " + (fillData.error || fillRes.status));
+      if (!fillRes.ok) throw new Error("翻訳生成エラー: " + (fillData.error || fillRes.status) + (fillData.raw ? " | " + fillData.raw : ""));
       translations = fillData;
 
       // 2. 商品をDBに保存（翻訳込み）

@@ -158,23 +158,23 @@ export default function UploadPage() {
     setUploading(true);
     setError("");
     try {
-      // 1. 3言語翻訳を先に生成
+      // 1. 3言語翻訳を先に生成（失敗してもアップロードは続行）
       let translations = {};
-      const fillRes = await fetch("/api/fill", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          category,
-          trend_reason: trendReason || null,
-          use_scene: useScene || null,
-          good_review: goodReview || null,
-          features: features || null,
-        }),
-      });
-      if (fillRes.ok) {
-        translations = await fillRes.json();
-      }
+      try {
+        const fillRes = await fetch("/api/fill", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            category,
+            trend_reason: trendReason || null,
+            use_scene: useScene || null,
+            good_review: goodReview || null,
+            features: features || null,
+          }),
+        });
+        if (fillRes.ok) translations = await fillRes.json();
+      } catch {}
 
       // 2. 商品をDBに保存（翻訳込み）
       const { data: product, error: dbError } = await supabase

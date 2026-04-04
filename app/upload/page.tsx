@@ -156,6 +156,25 @@ export default function UploadPage() {
     setUploading(true);
     setError("");
     try {
+      // 1. 3言語翻訳を先に生成
+      let translations = {};
+      try {
+        const fillRes = await fetch("/api/fill", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            category,
+            trend_reason: trendReason || null,
+            use_scene: useScene || null,
+            good_review: goodReview || null,
+            features: features || null,
+          }),
+        });
+        if (fillRes.ok) translations = await fillRes.json();
+      } catch {}
+
+      // 2. 商品をDBに保存（翻訳込み）
       const { data: product, error: dbError } = await supabase
         .from("products")
         .insert({
@@ -167,11 +186,14 @@ export default function UploadPage() {
           good_review: goodReview || null,
           bad_review: badReview || null,
           features: features || null,
+          translations,
         })
         .select()
         .single();
       if (dbError) throw dbError;
       const productId = product.id;
+
+      // 3. 画像をStorageにアップロード
       const imageUrls: string[] = [];
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
@@ -186,34 +208,13 @@ export default function UploadPage() {
           .getPublicUrl(filePath);
         imageUrls.push(urlData.publicUrl);
       }
+
+      // 4. 画像URLを更新
       const { error: updateError } = await supabase
         .from("products")
         .update({ images: imageUrls })
         .eq("id", productId);
       if (updateError) throw updateError;
-
-      // 3言語翻訳を生成してDB保存
-      try {
-        const fillRes = await fetch("/api/fill", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name,
-            category,
-            trend_reason: trendReason || null,
-            use_scene: useScene || null,
-            good_review: goodReview || null,
-            features: features || null,
-          }),
-        });
-        if (fillRes.ok) {
-          const translations = await fillRes.json();
-          await supabase
-            .from("products")
-            .update({ translations })
-            .eq("id", productId);
-        }
-      } catch {}
 
       setDone(true);
     } catch (err: any) {

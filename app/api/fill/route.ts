@@ -58,7 +58,9 @@ export async function POST(req: NextRequest) {
 
     const data = await response.json();
     const content = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    // マークダウンコードブロックを除去
+    if (!content) {
+      return NextResponse.json({ error: "parse error", raw: JSON.stringify(data).slice(0, 300) }, { status: 500 });
+    }
     const cleaned = content.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
     const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {

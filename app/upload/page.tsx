@@ -99,6 +99,7 @@ export default function UploadPage() {
   const l = t[lang];
 
   const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
   const [category, setCategory] = useState("goods");
   const [priceCNY, setPriceCNY] = useState("");
   const [exchangeRate, setExchangeRate] = useState(DEFAULT_RATE.toString());
@@ -179,6 +180,7 @@ export default function UploadPage() {
         .from("products")
         .insert({
           name_ja: name,
+          slug: slug || null,
           category,
           sale_price: estimatedJPY || null,
           trend_reason: trendReason || null,
@@ -226,6 +228,7 @@ export default function UploadPage() {
 
   function reset() {
     setName("");
+    setSlug("");
     setCategory("goods");
     setPriceCNY("");
     setTrendReason("");
@@ -311,8 +314,29 @@ export default function UploadPage() {
             <div className="space-y-3">
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">{l.productName} *</label>
-                <input type="text" placeholder={l.productNameEx} value={name} onChange={(e) => setName(e.target.value)} maxLength={30} className="w-full border rounded-xl px-4 py-3 text-sm" />
+                <input
+                  type="text"
+                  placeholder={l.productNameEx}
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""));
+                  }}
+                  maxLength={30}
+                  className="w-full border rounded-xl px-4 py-3 text-sm"
+                />
                 <p className="text-xs text-gray-300 text-right mt-1">{name.length}/30</p>
+                {slug && (
+                  <div className="mt-2">
+                    <label className="text-xs text-gray-400 block mb-1">URL slug（編集可）</label>
+                    <input
+                      type="text"
+                      value={slug}
+                      onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                      className="w-full border rounded-xl px-4 py-2 text-xs text-gray-600"
+                    />
+                  </div>
+                )}
               </div>
 
               <div>

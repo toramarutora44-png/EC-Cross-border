@@ -246,7 +246,7 @@ export default function Home() {
       {/* おすすめ商品ヒーロー */}
       {featured && featured.images?.[0] && (
         <section className="px-4 pt-3">
-          <a href={`/product/${featured.id}`} className="block relative rounded-3xl overflow-hidden shadow-md">
+          <a href={`/product/${featured.slug || featured.id}`} className="block relative rounded-3xl overflow-hidden shadow-md">
             <img src={featured.images[0]} alt={featured.name_ja || featured.name} className="w-full aspect-[4/3] object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-5">
@@ -291,7 +291,7 @@ export default function Home() {
               return (
                 <a
                   key={p.id}
-                  href={`/product/${p.id}`}
+                  href={`/product/${p.slug || p.id}`}
                   className="block bg-white rounded-3xl overflow-hidden shadow-sm active:scale-[0.97] transition border border-pink-50"
                 >
                   <div className="relative">

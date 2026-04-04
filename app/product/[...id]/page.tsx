@@ -74,7 +74,7 @@ export default function ProductPage() {
     fetch("/api/products")
       .then(r => r.json())
       .then(async (list: any[]) => {
-        const found = list.find(p => p.id === id);
+        const found = list.find(p => p.slug === id || p.id === id);
         if (!found) return setProduct(null);
         setProduct(found);
       });

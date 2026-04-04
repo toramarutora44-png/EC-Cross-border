@@ -159,9 +159,9 @@ export default function UploadPage() {
       const { data: product, error: dbError } = await supabase
         .from("products")
         .insert({
-          name,
+          name_ja: name,
           category,
-          price: estimatedJPY || null,
+          sale_price: estimatedJPY || null,
           trend_reason: trendReason || null,
           use_scene: useScene || null,
           good_review: goodReview || null,

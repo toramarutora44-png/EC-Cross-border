@@ -9,15 +9,42 @@ export default function ProductPage() {
   const id = idArr.join("/");
 
   const [product, setProduct] = useState<any>(null);
+  const [filled, setFilled] = useState<any>({});
+  const [imgIndex, setImgIndex] = useState(0);
   const [added, setAdded] = useState(false);
   const { addItem, count } = useCart();
 
   useEffect(() => {
     fetch("/api/products")
       .then(r => r.json())
-      .then((list: any[]) => {
+      .then(async (list: any[]) => {
         const found = list.find(p => p.id === id);
-        setProduct(found || null);
+        if (!found) return setProduct(null);
+        setProduct(found);
+
+        // 空フィールドがある場合だけAI補完
+        const needsFill =
+          !found.trend_reason || !found.use_scene || !found.good_review || !found.features;
+        if (needsFill) {
+          try {
+            const res = await fetch("/api/fill", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                name: found.name_ja || found.name,
+                category: found.category,
+                trend_reason: found.trend_reason,
+                use_scene: found.use_scene,
+                good_review: found.good_review,
+                features: found.features,
+              }),
+            });
+            if (res.ok) {
+              const aiData = await res.json();
+              setFilled(aiData);
+            }
+          } catch {}
+        }
       });
   }, [id]);
 
@@ -25,26 +52,43 @@ export default function ProductPage() {
     if (!product) return;
     addItem({
       id: product.id,
-      nameJa: product.name_ja || product.nameJa || product.id,
-      salePrice: product.sale_price || product.salePrice || 0,
-      image: product.images?.[0] || `/products/${product.id}/1.jpg`,
+      nameJa: product.name_ja || product.name || product.id,
+      salePrice: product.sale_price || product.price || 0,
+      image: product.images?.[0] || "",
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
 
-  if (!product) return <p className="text-center mt-20 text-gray-400">読み込み中...</p>;
+  if (!product) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-300 text-sm">読み込み中...</p>
+      </div>
+    );
+  }
+
+  const images: string[] = product.images || [];
+  const price = product.sale_price || product.price;
+  const name = product.name_ja || product.name;
+
+  // 入力値 → なければAI補完値を使う
+  const trendReason = product.trend_reason || filled.trend_reason;
+  const useScene = product.use_scene || filled.use_scene;
+  const goodReview = product.good_review || filled.good_review;
+  const badReview = product.bad_review;
+  const features = product.features || filled.features;
 
   return (
-    <main className="max-w-md mx-auto bg-white text-black pb-24">
+    <main className="max-w-md mx-auto bg-white text-black pb-28">
 
       {/* ヘッダー */}
-      <div className="flex justify-between items-center px-4 py-3 border-b">
+      <div className="flex justify-between items-center px-4 py-3">
         <a href="/" className="text-sm text-gray-400">← 戻る</a>
-        <a href="/cart" className="text-sm relative">
+        <a href="/cart" className="relative text-xl">
           🛒
           {count > 0 && (
-            <span className="absolute -top-1 -right-3 bg-rose-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+            <span className="absolute -top-1 -right-2 bg-rose-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
               {count}
             </span>
           )}
@@ -52,36 +96,133 @@ export default function ProductPage() {
       </div>
 
       {/* 画像 */}
-      <img
-        src={product.images?.[0] || `/products/${id}/1.jpg`}
-        className="w-full"
-      />
+      {images.length > 0 ? (
+        <div>
+          <img
+            src={images[imgIndex]}
+            alt={name}
+            className="w-full aspect-square object-cover"
+          />
+          {images.length > 1 && (
+            <div className="flex justify-center gap-1.5 pt-3">
+              {images.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setImgIndex(i)}
+                  className={`w-2 h-2 rounded-full transition ${i === imgIndex ? "bg-gray-800" : "bg-gray-300"}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="w-full aspect-square flex items-center justify-center text-5xl bg-pink-50">
+          🎀
+        </div>
+      )}
 
-      {/* 商品情報 */}
-      <div className="px-4 mt-4">
-        <h1 className="text-xl font-bold">{product.name_ja || product.nameJa || id}</h1>
+      {/* 商品名・価格 */}
+      <div className="px-4 pt-5">
+        {product.category && (
+          <span className="text-xs text-gray-400 uppercase tracking-wide">{product.category}</span>
+        )}
+        <h1 className="text-lg font-bold mt-1 leading-snug">{name}</h1>
 
-        {(product.sale_price || product.salePrice) ? (
-          <div className="mt-2">
-            <p className="text-2xl font-bold text-rose-600">
-              ¥{(product.sale_price || product.salePrice).toLocaleString()}
-            </p>
-            <p className="text-xs text-gray-400">送料込み</p>
+        {price ? (
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-2xl font-black" style={{ color: "#C9637A" }}>
+              ¥{price.toLocaleString()}
+            </span>
+            <span className="text-xs text-gray-400">送料込み</span>
           </div>
         ) : (
-          <p className="text-gray-400 mt-2">価格未設定</p>
+          <p className="text-gray-400 mt-2 text-sm">価格未設定</p>
         )}
       </div>
 
-      {/* カートボタン（固定） */}
-      <div className="fixed bottom-0 left-0 w-full px-4 py-3 bg-white border-t">
+      <div className="mx-4 mt-5 border-t border-gray-100" />
+
+      {/* なぜ人気？ */}
+      {trendReason && (
+        <div className="px-4 pt-5">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">人気の理由</p>
+          <p className="text-sm text-gray-700 leading-relaxed">{trendReason}</p>
+        </div>
+      )}
+
+      {/* 使用シーン */}
+      {useScene && (
+        <div className="px-4 pt-5">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">こんな時に</p>
+          <p className="text-sm text-gray-700 leading-relaxed">{useScene}</p>
+        </div>
+      )}
+
+      {/* 特徴 */}
+      {features && (
+        <div className="px-4 pt-5">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">商品の特徴</p>
+          <p className="text-sm text-gray-700 leading-relaxed">{features}</p>
+        </div>
+      )}
+
+      {/* 口コミ */}
+      {(goodReview || badReview) && (
+        <>
+          <div className="mx-4 mt-5 border-t border-gray-100" />
+          <div className="px-4 pt-5">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">購入者の声</p>
+            {goodReview && (
+              <div className="bg-gray-50 rounded-2xl p-4 mb-3">
+                <div className="flex items-center gap-0.5 mb-2">
+                  {[1,2,3,4,5].map(i => (
+                    <span key={i} className="text-sm" style={{ color: "#f0a0b8" }}>★</span>
+                  ))}
+                </div>
+                <p className="text-sm text-gray-700 leading-relaxed">{goodReview}</p>
+              </div>
+            )}
+            {badReview && (
+              <div className="border border-gray-100 rounded-2xl p-4">
+                <p className="text-xs text-gray-400 mb-1">気になる点</p>
+                <p className="text-sm text-gray-500 leading-relaxed">{badReview}</p>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* 安心ポイント */}
+      <div className="mx-4 mt-5 border-t border-gray-100" />
+      <div className="px-4 pt-5">
+        <div className="flex flex-col gap-2">
+          {[
+            { text: "中国製＝高品質。検品済みの商品のみをお届けします" },
+            { text: "安全な梱包材で丁寧に発送" },
+            { text: "明らかな不良品は返品・交換対応" },
+          ].map((item, i) => (
+            <div key={i} className="flex items-start gap-2">
+              <span className="text-green-500 text-xs font-bold mt-0.5">✔</span>
+              <span className="text-xs text-gray-500 leading-relaxed">{item.text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 固定CTA */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-3 max-w-md mx-auto">
         <button
           onClick={handleAdd}
-          className="w-full bg-black text-white py-3 rounded font-bold"
+          className="w-full py-4 rounded-2xl font-bold text-sm transition"
+          style={{
+            background: added ? "#22c55e" : "#1a1a1a",
+            color: "#fff",
+          }}
         >
-          {added ? "✓ カートに追加しました" : "カートに追加する"}
+          {added ? "カートに追加しました" : "カートに追加する"}
         </button>
       </div>
+
     </main>
   );
 }

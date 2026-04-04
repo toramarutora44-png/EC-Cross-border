@@ -12,9 +12,13 @@ export const config = {
 
 ffmpeg.setFfmpegPath(ffmpegStatic);
 
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+console.log("[upload] using key:", serviceKey ? "service_role" : "anon");
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  serviceKey || anonKey
 );
 
 // SNSサイズ定義
@@ -88,7 +92,7 @@ async function uploadToStorage(buffer, storagePath, mimeType) {
     .from("products")
     .upload(storagePath, buffer, { contentType: mimeType, upsert: true });
 
-  if (error) throw new Error(error.message);
+  if (error) throw new Error("Storage upload error: " + error.message);
 
   const { data } = supabase.storage.from("products").getPublicUrl(storagePath);
   return data.publicUrl;
@@ -179,7 +183,7 @@ export default function handler(req, res) {
         sns_videos: snsVideos,
       });
 
-      if (dbError) throw new Error(dbError.message);
+      if (dbError) throw new Error("DB insert error: " + dbError.message);
 
       res.status(200).json({
         success: true,

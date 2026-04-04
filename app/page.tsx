@@ -35,12 +35,12 @@ const t = {
     line: "LINEで相談する",
     lineDesc: "在庫確認・ご質問はお気軽に",
     whyTitle: "安心してお買い物できる理由",
-    why1title: "現地で検品済み",
-    why1desc: "中国在住のスタッフが一点ずつ実物を確認。不良品はその場で返品するから、届くのは合格品だけ。",
-    why2title: "格安通販との違い",
-    why2desc: "格安サイトで問題になっている粗悪品や危険な梱包材。私たちは信頼できる店舗からのみ仕入れ、品質を保証します。",
+    why1title: "現地の可愛いを日本へ",
+    why1desc: "日本ではなかなか手に入らない、中国の文化や日常に根ざした可愛いアイテムを現地から直接お届けします。",
+    why2title: "現地メンバーが厳選",
+    why2desc: "流行・隠れ人気・現地で話題のアイテムを、中国在住メンバーがリアルな目線で選んでいます。そこらにある商品とは違います。",
     why3title: "中国製＝高品質",
-    why3desc: "世界の一流ブランドも中国で製造。良い工場の製品は品質が高い。私たちはその「良い店」だけを厳選しています。",
+    why3desc: "世界の名だたるブランドも中国で製造されています。私たちは品質を確認した検品済みの商品のみをお届けします。",
     sold: "人が購入",
     fewLeft: "残りわずか",
     pickup: "おすすめ",
@@ -59,12 +59,12 @@ const t = {
     line: "LINE咨询",
     lineDesc: "库存确认·问题咨询",
     whyTitle: "放心购物的理由",
-    why1title: "当地验货",
-    why1desc: "中国当地员工逐件检查实物，不良品当场退货，只发合格商品。",
-    why2title: "与廉价平台的区别",
-    why2desc: "廉价平台常出现劣质品和危险包装。我们只从可信店铺进货，保证品质。",
+    why1title: "将中国可爱带到日本",
+    why1desc: "日本难以入手的、根植于中国文化与日常的可爱单品，由当地直接为您配送。",
+    why2title: "当地成员精选",
+    why2desc: "流行趋势、隐藏爆款、当地热议商品，由中国当地成员以真实眼光为您甄选。与随处可见的商品截然不同。",
     why3title: "中国制造=高品质",
-    why3desc: "世界一线品牌也在中国生产。好工厂的产品质量很高，我们只精选「好店」。",
+    why3desc: "众多世界知名品牌也在中国生产。我们只配送经过质检、品质有保障的商品。",
     sold: "人已购买",
     fewLeft: "库存紧张",
     pickup: "精选",
@@ -82,13 +82,13 @@ const t = {
     noProducts: "Products coming soon...",
     line: "Contact via LINE",
     lineDesc: "Stock check & inquiries welcome",
-    whyTitle: "Why shop with confidence",
-    why1title: "Inspected on-site",
-    why1desc: "Our staff in China checks every item in person. Defective products are returned on the spot — only approved items are shipped.",
-    why2title: "Unlike cheap platforms",
-    why2desc: "Cheap platforms are known for poor quality. We source only from trusted suppliers with guaranteed quality.",
+    whyTitle: "Why shop with us",
+    why1title: "Cute from China, to you",
+    why1desc: "Hard-to-find items rooted in Chinese culture and daily life — delivered straight from the source to Japan.",
+    why2title: "Curated by locals",
+    why2desc: "Trending, hidden-gem, and locally loved products selected by our team living in China. Not the same stuff you see everywhere.",
     why3title: "Made in China = Quality",
-    why3desc: "Top global brands manufacture in China. Good factories produce great products — we handpick only the best.",
+    why3desc: "The world's top brands manufacture in China. We deliver only inspected, quality-verified products.",
     sold: "sold",
     fewLeft: "Few left",
     pickup: "PICK UP",
@@ -247,16 +247,16 @@ export default function Home() {
       {featured && featured.images?.[0] && (
         <section className="px-4 pt-3">
           <a href={`/product/${featured.id}`} className="block relative rounded-3xl overflow-hidden shadow-md">
-            <img src={featured.images[0]} alt={featured.name} className="w-full aspect-[4/3] object-cover" />
+            <img src={featured.images[0]} alt={featured.name_ja || featured.name} className="w-full aspect-[4/3] object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-5">
               <span className="text-white text-[10px] font-bold px-3 py-1 rounded-full" style={{ background: "rgba(201,99,122,0.8)" }}>
                 ✨ {l.pickup}
               </span>
-              <h2 className="text-white text-xl font-bold mt-2">{featured.name}</h2>
+              <h2 className="text-white text-xl font-bold mt-2">{featured.name_ja || featured.name}</h2>
               <div className="flex items-center gap-3 mt-1">
-                {featured.price && (
-                  <span className="text-white text-lg font-black">¥{featured.price.toLocaleString()}</span>
+                {(featured.sale_price || featured.price) && (
+                  <span className="text-white text-lg font-black">¥{(featured.sale_price || featured.price).toLocaleString()}</span>
                 )}
                 <span className="text-white/70 text-xs">★ {getRating(featured.id)} · {getSoldCount(featured.id)}{l.sold}</span>
               </div>
@@ -296,7 +296,7 @@ export default function Home() {
                 >
                   <div className="relative">
                     {p.images?.[0] ? (
-                      <img src={p.images[0]} alt={p.name} className="w-full aspect-square object-cover" />
+                      <img src={p.images[0]} alt={p.name_ja || p.name} className="w-full aspect-square object-cover" />
                     ) : (
                       <div className="w-full aspect-square flex items-center justify-center text-4xl" style={{ background: "linear-gradient(135deg, #FDE8F0, #EDE8F8)" }}>
                         🎀
@@ -312,16 +312,16 @@ export default function Home() {
                     </div>
                   </div>
                   <div className="p-3">
-                    <p className="text-sm font-bold truncate text-gray-700">{p.name}</p>
+                    <p className="text-sm font-bold truncate text-gray-700">{p.name_ja || p.name}</p>
                     <div className="flex items-center gap-1 mt-0.5">
                       <span className="text-xs" style={{ color: "#f0a0b8" }}>★</span>
                       <span className="text-xs text-gray-400">{getRating(p.id)}</span>
                       <span className="text-xs text-gray-200 mx-0.5">|</span>
                       <span className="text-xs text-gray-400">{getSoldCount(p.id)}{l.sold}</span>
                     </div>
-                    {p.price && (
+                    {(p.sale_price || p.price) && (
                       <p className="text-base font-black mt-1" style={{ color: "#C9637A" }}>
-                        ¥{p.price.toLocaleString()}
+                        ¥{(p.sale_price || p.price).toLocaleString()}
                       </p>
                     )}
                   </div>

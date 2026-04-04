@@ -63,7 +63,6 @@ export default function ProductPage() {
   const l = t[lang];
 
   const [product, setProduct] = useState<any>(null);
-  const [filled, setFilled] = useState<{ ja: any; zh: any; en: any } | null>(null);
   const [imgIndex, setImgIndex] = useState(0);
   const [added, setAdded] = useState(false);
   const { addItem, count } = useCart();
@@ -78,33 +77,6 @@ export default function ProductPage() {
         const found = list.find(p => p.id === id);
         if (!found) return setProduct(null);
         setProduct(found);
-
-        // 常にAI翻訳を取得（DB値は入力として渡すだけ）
-        {
-          try {
-            const res = await fetch("/api/fill", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                name: found.name_ja || found.name,
-                category: found.category,
-                trend_reason: found.trend_reason,
-                use_scene: found.use_scene,
-                good_review: found.good_review,
-                features: found.features,
-              }),
-            });
-            if (res.ok) {
-              const aiData = await res.json();
-              // 3言語オブジェクト or 旧形式（jaのみ）に対応
-              if (aiData.ja) {
-                setFilled(aiData);
-              } else {
-                setFilled({ ja: aiData, zh: aiData, en: aiData });
-              }
-            }
-          } catch {}
-        }
       });
   }, [id]);
 
@@ -131,13 +103,12 @@ export default function ProductPage() {
   const images: string[] = product.images || [];
   const price = product.sale_price || product.price;
   const name = product.name_ja || product.name;
-  const f = filled?.[lang] || {};
-  // AI翻訳を優先、なければDB値（ローディング中など）
-  const trendReason = f.trend_reason || product.trend_reason;
-  const useScene = f.use_scene || product.use_scene;
-  const goodReview = f.good_review || product.good_review;
+  const tr = product.translations?.[lang] || {};
+  const trendReason = tr.trend_reason || product.trend_reason;
+  const useScene = tr.use_scene || product.use_scene;
+  const goodReview = tr.good_review || product.good_review;
   const badReview = product.bad_review;
-  const features = f.features || product.features;
+  const features = tr.features || product.features;
 
   const prevImg = () => setImgIndex(i => (i - 1 + images.length) % images.length);
   const nextImg = () => setImgIndex(i => (i + 1) % images.length);

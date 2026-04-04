@@ -191,6 +191,30 @@ export default function UploadPage() {
         .update({ images: imageUrls })
         .eq("id", productId);
       if (updateError) throw updateError;
+
+      // 3言語翻訳を生成してDB保存
+      try {
+        const fillRes = await fetch("/api/fill", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            category,
+            trend_reason: trendReason || null,
+            use_scene: useScene || null,
+            good_review: goodReview || null,
+            features: features || null,
+          }),
+        });
+        if (fillRes.ok) {
+          const translations = await fillRes.json();
+          await supabase
+            .from("products")
+            .update({ translations })
+            .eq("id", productId);
+        }
+      } catch {}
+
       setDone(true);
     } catch (err: any) {
       setError(err.message || "Error");

@@ -41,7 +41,7 @@ export default function Home() {
       {/* LINE */}
       <section className="text-center mt-6">
         <a 
-          href="https://lin.ee/xxxxxxx" 
+          href="https://line.me/R/ti/p/@143xkgim" 
           target="_blank" 
           className="underline"
         >
@@ -51,7 +51,7 @@ export default function Home() {
 
       {/* CTA */}
       <div className="fixed bottom-0 left-0 w-full bg-black text-white text-center py-4">
-        <a href="https://lin.ee/xxxxxxx">
+        <a href="https://line.me/R/ti/p/@143xkgim">
           今すぐチェック
         </a>
       </div>

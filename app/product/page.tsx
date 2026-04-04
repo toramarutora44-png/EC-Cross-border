@@ -7,21 +7,21 @@ export default function Home() {
 
   const t = {
     ja: {
-      brand: "Trend Select",
+      brand: "HaoHao",
       tagline: "中国のかわいいを発見",
       title: "今日の発見",
       items: ["これ、可愛すぎ", "え、なにこれ", "欲しくなるやつ"],
       category: ["バッグ", "洋服", "雑貨"],
     },
     zh: {
-      brand: "Trend Select",
+      brand: "HaoHao",
       tagline: "发现中国的可爱",
       title: "今日发现",
       items: ["太可爱了", "这是什么", "想要这个"],
       category: ["包包", "服装", "杂货"],
     },
     en: {
-      brand: "Trend Select",
+      brand: "HaoHao",
       tagline: "Discover cute from China",
       title: "Today's Finds",
       items: ["Too cute", "What is this?", "I want this"],
@@ -96,13 +96,41 @@ export default function Home() {
 
       </section>
 
-      {/* LINE */}
-      <div className="text-center my-10">
-        <a href="https://lin.ee/wuKhILR" target="_blank">
+      {/* SNSリンク */}
+      <div className="text-center my-10 space-y-4">
+        <a href="https://line.me/R/ti/p/@143xkgim" target="_blank">
           <img
             src="https://scdn.line-apps.com/n/line_add_friends/btn/ja.png"
             className="mx-auto h-12"
           />
+        </a>
+        <a
+          href="https://www.instagram.com/haohao_cute_from_china/"
+          target="_blank"
+          className="block text-sm text-gray-500 underline"
+        >
+          📷 Instagram @haohao_cute_from_china
+        </a>
+        <a
+          href="https://www.tiktok.com/@haohaoselect"
+          target="_blank"
+          className="block text-sm text-gray-500 underline"
+        >
+          🎵 TikTok @haohaoselect
+        </a>
+        <a
+          href="https://www.threads.com/@haohao_cute_from_china"
+          target="_blank"
+          className="block text-sm text-gray-500 underline"
+        >
+          🧵 Threads @haohao_cute_from_china
+        </a>
+        <a
+          href="https://x.com/YuHa583836"
+          target="_blank"
+          className="block text-sm text-gray-500 underline"
+        >
+          𝕏 X @YuHa583836
         </a>
       </div>
 

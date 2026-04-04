@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 180" width="300" height="180">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600&amp;family=Raleway:wght@300;400&amp;display=swap');
+    </style>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="300" height="180" fill="#FAF6F0" rx="12"/>
+
+  <!-- 装飾ライン上 -->
+  <line x1="60" y1="42" x2="240" y2="42" stroke="#C9A96E" stroke-width="0.8" opacity="0.6"/>
+
+  <!-- 好好 メイン漢字 -->
+  <text
+    x="150"
+    y="100"
+    text-anchor="middle"
+    font-family="'Noto Serif SC', serif"
+    font-size="54"
+    font-weight="600"
+    fill="#B76E79"
+    letter-spacing="8"
+  >好好</text>
+
+  <!-- HaoHao サブテキスト -->
+  <text
+    x="150"
+    y="126"
+    text-anchor="middle"
+    font-family="'Raleway', sans-serif"
+    font-size="13"
+    font-weight="300"
+    fill="#8B5A5A"
+    letter-spacing="6"
+  >H A O H A O</text>
+
+  <!-- Cute from China -->
+  <text
+    x="150"
+    y="148"
+    text-anchor="middle"
+    font-family="'Raleway', sans-serif"
+    font-size="10"
+    font-weight="400"
+    fill="#C9A96E"
+    letter-spacing="3"
+  >— Cute from China —</text>
+
+  <!-- 装飾ライン下 -->
+  <line x1="60" y1="160" x2="240" y2="160" stroke="#C9A96E" stroke-width="0.8" opacity="0.6"/>
+
+  <!-- 左右の小さい装飾ドット -->
+  <circle cx="54" cy="100" r="2.5" fill="#C9A96E" opacity="0.7"/>
+  <circle cx="246" cy="100" r="2.5" fill="#C9A96E" opacity="0.7"/>
+</svg>

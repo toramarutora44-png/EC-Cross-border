@@ -9,16 +9,17 @@ const t = {
     shipping: "送料込み",
     noPrice: "価格未設定",
     trendTitle: "人気の理由",
-    sceneTitle: "こんな時に",
+    sceneTitle: "こんなシーンに",
     featuresTitle: "商品の特徴",
-    reviewTitle: "購入者の声",
-    concernTitle: "気になる点",
+    reviewTitle: "レビュー",
+    concernTitle: "注意点",
     safeTitle: "安心ポイント",
-    safe1: "中国製＝高品質。検品済みの商品のみをお届けします",
+    safe1: "中国製＝高品質。検品済みのみお届け",
     safe2: "安全な梱包材で丁寧に発送",
-    safe3: "明らかな不良品は返品・交換対応",
+    safe3: "不良品は返品・交換対応",
     addCart: "カートに追加する",
-    added: "カートに追加しました",
+    added: "追加しました ✓",
+    new: "NEW",
   },
   zh: {
     back: "返回",
@@ -30,27 +31,29 @@ const t = {
     reviewTitle: "买家评价",
     concernTitle: "注意事项",
     safeTitle: "放心购物",
-    safe1: "中国制造=高品质。仅配送经质检的商品",
-    safe2: "使用安全包装材料，精心发货",
+    safe1: "中国制造=高品质，仅配送经质检商品",
+    safe2: "安全包装，精心发货",
     safe3: "明显不良品支持退换货",
     addCart: "加入购物车",
-    added: "已加入购物车",
+    added: "已加入 ✓",
+    new: "新品",
   },
   en: {
     back: "Back",
-    shipping: "Shipping included",
+    shipping: "Free shipping",
     noPrice: "Price TBD",
-    trendTitle: "Why it's popular",
-    sceneTitle: "When to use",
-    featuresTitle: "Product features",
-    reviewTitle: "Customer reviews",
-    concernTitle: "Things to note",
-    safeTitle: "Shop with confidence",
-    safe1: "Made in China = Quality. Only inspected items shipped.",
-    safe2: "Carefully packed with safe materials",
-    safe3: "Returns & exchanges for defective items",
+    trendTitle: "Why it's trending",
+    sceneTitle: "Perfect for",
+    featuresTitle: "Details",
+    reviewTitle: "Reviews",
+    concernTitle: "Note",
+    safeTitle: "Our promise",
+    safe1: "Made in China = Quality. Inspected items only.",
+    safe2: "Safe packaging, carefully shipped",
+    safe3: "Defective items: returns & exchanges",
     addCart: "Add to cart",
-    added: "Added to cart",
+    added: "Added ✓",
+    new: "NEW",
   },
 };
 
@@ -66,17 +69,14 @@ export default function ProductPage() {
   const [imgIndex, setImgIndex] = useState(0);
   const [added, setAdded] = useState(false);
   const { addItem, count } = useCart();
-
-  // スワイプ検出
   const touchStartX = useRef<number | null>(null);
 
   useEffect(() => {
     fetch("/api/products")
       .then(r => r.json())
-      .then(async (list: any[]) => {
+      .then((list: any[]) => {
         const found = list.find(p => p.slug === id || p.id === id);
-        if (!found) return setProduct(null);
-        setProduct(found);
+        setProduct(found || null);
       });
   }, [id]);
 
@@ -94,8 +94,8 @@ export default function ProductPage() {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-300 text-sm">読み込み中...</p>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="w-8 h-8 border-2 border-gray-200 border-t-gray-600 rounded-full animate-spin" />
       </div>
     );
   }
@@ -110,31 +110,36 @@ export default function ProductPage() {
   const badReview = product.bad_review;
   const features = tr.features || product.features;
 
+  const isNew = product.created_at &&
+    (Date.now() - new Date(product.created_at).getTime()) < 7 * 24 * 60 * 60 * 1000;
+
   const prevImg = () => setImgIndex(i => (i - 1 + images.length) % images.length);
   const nextImg = () => setImgIndex(i => (i + 1) % images.length);
 
   return (
-    <main className="max-w-md mx-auto bg-white text-black pb-28">
+    <main className="max-w-md mx-auto bg-white min-h-screen pb-28">
 
       {/* ヘッダー */}
-      <div className="flex justify-between items-center px-4 py-3">
-        <a href="/" className="text-sm text-gray-400">← {l.back}</a>
+      <div className="flex justify-between items-center px-4 py-3 bg-white">
+        <a href="/" className="flex items-center gap-1 text-sm text-gray-500 hover:text-black transition">
+          ← {l.back}
+        </a>
         <div className="flex items-center gap-3">
-          <div className="flex gap-0.5 text-[10px] bg-gray-100 px-0.5 py-0.5 rounded-full">
+          <div className="flex bg-gray-100 rounded-full p-0.5 text-[11px]">
             {(["ja", "zh", "en"] as const).map(code => (
               <button
                 key={code}
                 onClick={() => setLang(code)}
-                className={`px-2 py-1 rounded-full transition ${lang === code ? "bg-black text-white" : "text-gray-500"}`}
+                className={`px-2.5 py-1 rounded-full font-medium transition ${lang === code ? "bg-white text-black shadow-sm" : "text-gray-400"}`}
               >
                 {code === "ja" ? "JP" : code === "zh" ? "CN" : "EN"}
               </button>
             ))}
           </div>
-          <a href="/cart" className="relative text-xl">
-            🛒
+          <a href="/cart" className="relative">
+            <span className="text-xl">🛒</span>
             {count > 0 && (
-              <span className="absolute -top-1 -right-2 bg-rose-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
                 {count}
               </span>
             )}
@@ -143,110 +148,114 @@ export default function ProductPage() {
       </div>
 
       {/* 画像スライダー */}
-      {images.length > 0 ? (
-        <div className="relative select-none">
-          <div
-            className="overflow-hidden"
-            onTouchStart={e => { touchStartX.current = e.touches[0].clientX; }}
-            onTouchEnd={e => {
-              if (touchStartX.current === null) return;
-              const diff = touchStartX.current - e.changedTouches[0].clientX;
-              if (diff > 40) nextImg();
-              else if (diff < -40) prevImg();
-              touchStartX.current = null;
-            }}
-          >
-            <img
-              src={images[imgIndex]}
-              alt={name}
-              className="w-full aspect-square object-cover"
-            />
-          </div>
-
-          {images.length > 1 && (
-            <>
-              <button
-                onClick={prevImg}
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full w-8 h-8 flex items-center justify-center shadow text-gray-600 text-sm"
-              >
-                ‹
-              </button>
-              <button
-                onClick={nextImg}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full w-8 h-8 flex items-center justify-center shadow text-gray-600 text-sm"
-              >
-                ›
-              </button>
-              <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
-                {images.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setImgIndex(i)}
-                    className={`w-1.5 h-1.5 rounded-full transition ${i === imgIndex ? "bg-white" : "bg-white/50"}`}
-                  />
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      ) : (
-        <div className="w-full aspect-square flex items-center justify-center text-5xl bg-pink-50">🎀</div>
-      )}
-
-      {/* 商品名・価格 */}
-      <div className="px-4 pt-5">
-        {product.category && (
-          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">{product.category}</span>
-        )}
-        <h1 className="text-xl font-bold mt-1 leading-snug">{name}</h1>
-        {price ? (
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-black" style={{ color: "#C9637A" }}>¥{price.toLocaleString()}</span>
-            <span className="text-xs text-gray-400">{l.shipping}</span>
-          </div>
+      <div className="relative bg-gray-50"
+        onTouchStart={e => { touchStartX.current = e.touches[0].clientX; }}
+        onTouchEnd={e => {
+          if (touchStartX.current === null) return;
+          const diff = touchStartX.current - e.changedTouches[0].clientX;
+          if (diff > 40) nextImg();
+          else if (diff < -40) prevImg();
+          touchStartX.current = null;
+        }}
+      >
+        {images.length > 0 ? (
+          <img src={images[imgIndex]} alt={name} className="w-full aspect-square object-cover" />
         ) : (
-          <p className="text-gray-400 mt-2 text-sm">{l.noPrice}</p>
+          <div className="w-full aspect-square flex items-center justify-center text-6xl">🎀</div>
+        )}
+
+        {isNew && (
+          <span className="absolute top-3 left-3 bg-black text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
+            {l.new}
+          </span>
+        )}
+
+        {images.length > 1 && (
+          <>
+            <button onClick={prevImg} className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 rounded-full w-9 h-9 flex items-center justify-center shadow-md text-gray-700 text-lg font-light">‹</button>
+            <button onClick={nextImg} className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 rounded-full w-9 h-9 flex items-center justify-center shadow-md text-gray-700 text-lg font-light">›</button>
+            <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
+              {images.map((_, i) => (
+                <button key={i} onClick={() => setImgIndex(i)}
+                  className={`rounded-full transition-all ${i === imgIndex ? "w-4 h-1.5 bg-white" : "w-1.5 h-1.5 bg-white/50"}`}
+                />
+              ))}
+            </div>
+          </>
         )}
       </div>
 
-      {/* 区切り */}
-      <div className="mx-4 mt-6 border-t border-gray-100" />
+      {/* 商品名・価格ブロック */}
+      <div className="px-4 pt-5 pb-4 border-b border-gray-100">
+        {product.category && (
+          <span className="inline-block text-[10px] font-semibold text-gray-400 tracking-widest uppercase mb-2">
+            {product.category}
+          </span>
+        )}
+        <h1 className="text-xl font-bold leading-tight text-gray-900">{name}</h1>
 
-      {/* 人気の理由 */}
-      {trendReason && (
-        <div className="px-4 pt-5">
-          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">{l.trendTitle}</p>
-          <p className="text-sm text-gray-700 leading-relaxed">{trendReason}</p>
+        <div className="mt-3 flex items-center justify-between">
+          {price ? (
+            <div>
+              <span className="text-3xl font-black" style={{ color: "#C9637A" }}>
+                ¥{price.toLocaleString()}
+              </span>
+              <span className="text-xs text-gray-400 ml-2">{l.shipping}</span>
+            </div>
+          ) : (
+            <span className="text-gray-400 text-sm">{l.noPrice}</span>
+          )}
         </div>
-      )}
+      </div>
 
-      {/* 使用シーン */}
-      {useScene && (
-        <div className="px-4 pt-5">
-          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">{l.sceneTitle}</p>
-          <p className="text-sm text-gray-700 leading-relaxed">{useScene}</p>
-        </div>
-      )}
+      {/* コンテンツセクション */}
+      <div className="divide-y divide-gray-100">
 
-      {/* 特徴 */}
-      {features && (
-        <div className="px-4 pt-5">
-          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">{l.featuresTitle}</p>
-          <p className="text-sm text-gray-700 leading-relaxed">{features}</p>
-        </div>
-      )}
+        {/* 人気の理由 */}
+        {trendReason && (
+          <div className="px-4 py-5">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-base">🔥</span>
+              <h2 className="text-sm font-bold text-gray-800">{l.trendTitle}</h2>
+            </div>
+            <p className="text-sm text-gray-600 leading-relaxed">{trendReason}</p>
+          </div>
+        )}
 
-      {/* 口コミ */}
-      {(goodReview || badReview) && (
-        <>
-          <div className="mx-4 mt-6 border-t border-gray-100" />
-          <div className="px-4 pt-5">
-            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">{l.reviewTitle}</p>
+        {/* 使用シーン */}
+        {useScene && (
+          <div className="px-4 py-5">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-base">✨</span>
+              <h2 className="text-sm font-bold text-gray-800">{l.sceneTitle}</h2>
+            </div>
+            <p className="text-sm text-gray-600 leading-relaxed">{useScene}</p>
+          </div>
+        )}
+
+        {/* 商品の特徴 */}
+        {features && (
+          <div className="px-4 py-5">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-base">📦</span>
+              <h2 className="text-sm font-bold text-gray-800">{l.featuresTitle}</h2>
+            </div>
+            <p className="text-sm text-gray-600 leading-relaxed">{features}</p>
+          </div>
+        )}
+
+        {/* 口コミ */}
+        {(goodReview || badReview) && (
+          <div className="px-4 py-5">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-base">💬</span>
+              <h2 className="text-sm font-bold text-gray-800">{l.reviewTitle}</h2>
+            </div>
             {goodReview && (
               <div className="bg-rose-50 rounded-2xl p-4 mb-3">
                 <div className="flex gap-0.5 mb-2">
                   {[1,2,3,4,5].map(i => (
-                    <span key={i} className="text-sm" style={{ color: "#C9637A" }}>★</span>
+                    <span key={i} style={{ color: "#C9637A" }}>★</span>
                   ))}
                 </div>
                 <p className="text-sm text-gray-700 leading-relaxed">{goodReview}</p>
@@ -259,29 +268,36 @@ export default function ProductPage() {
               </div>
             )}
           </div>
-        </>
-      )}
+        )}
 
-      {/* 安心ポイント */}
-      <div className="mx-4 mt-6 border-t border-gray-100" />
-      <div className="px-4 pt-5">
-        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">{l.safeTitle}</p>
-        <div className="flex flex-col gap-2.5">
-          {[l.safe1, l.safe2, l.safe3].map((text, i) => (
-            <div key={i} className="flex items-start gap-2">
-              <span className="text-green-500 text-xs font-bold mt-0.5">✔</span>
-              <span className="text-xs text-gray-500 leading-relaxed">{text}</span>
-            </div>
-          ))}
+        {/* 安心ポイント */}
+        <div className="px-4 py-5">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-base">🛡️</span>
+            <h2 className="text-sm font-bold text-gray-800">{l.safeTitle}</h2>
+          </div>
+          <div className="space-y-2.5">
+            {[l.safe1, l.safe2, l.safe3].map((text, i) => (
+              <div key={i} className="flex items-start gap-2.5">
+                <span className="text-green-500 text-sm mt-0.5">✓</span>
+                <span className="text-sm text-gray-500 leading-relaxed">{text}</span>
+              </div>
+            ))}
+          </div>
         </div>
+
       </div>
 
       {/* 固定CTA */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-3 max-w-md mx-auto" style={{ left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: "448px" }}>
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t border-gray-100 px-4 py-3">
         <button
           onClick={handleAdd}
-          className="w-full py-4 rounded-2xl font-bold text-sm transition"
-          style={{ background: added ? "#22c55e" : "#1a1a1a", color: "#fff" }}
+          className="w-full py-4 rounded-2xl font-bold text-sm transition-all duration-200"
+          style={{
+            background: added ? "#16a34a" : "#111111",
+            color: "#fff",
+            transform: added ? "scale(0.98)" : "scale(1)",
+          }}
         >
           {added ? l.added : l.addCart}
         </button>

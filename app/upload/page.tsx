@@ -172,9 +172,9 @@ export default function UploadPage() {
           features: features || null,
         }),
       });
-      const fillData = await fillRes.json();
-      if (!fillRes.ok) throw new Error("翻訳生成エラー: " + (fillData.error || fillRes.status) + (fillData.raw ? " | " + fillData.raw : ""));
-      translations = fillData;
+      if (fillRes.ok) {
+        translations = await fillRes.json();
+      }
 
       // 2. 商品をDBに保存（翻訳込み）
       const { data: product, error: dbError } = await supabase

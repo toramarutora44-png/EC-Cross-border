@@ -1,185 +1,133 @@
 "use client";
-import { useState } from "react";
-import { useCart } from "../context/CartContext";
 
-const PAYPAY_URL = "https://qr.paypay.ne.jp/p2p01_gMJsV0ljRMc6NioB";
+import { useState, useEffect } from "react";
+import { getCart, updateQuantity, getCartTotal, clearCart, CartItem } from "@/lib/cart";
+
+const t = {
+  ja: {
+    title: "カート",
+    empty: "カートに商品がありません",
+    back: "買い物を続ける",
+    total: "合計",
+    checkout: "注文に進む",
+    yen: "¥",
+    remove: "削除",
+  },
+  zh: {
+    title: "购物车",
+    empty: "购物车是空的",
+    back: "继续购物",
+    total: "合计",
+    checkout: "去结算",
+    yen: "¥",
+    remove: "删除",
+  },
+  en: {
+    title: "Cart",
+    empty: "Your cart is empty",
+    back: "Continue shopping",
+    total: "Total",
+    checkout: "Checkout",
+    yen: "¥",
+    remove: "Remove",
+  },
+};
 
 export default function CartPage() {
-  const { items, removeItem, total, clear } = useCart();
-  const [step, setStep] = useState<"cart" | "form" | "payment">("cart");
-  const [copied, setCopied] = useState(false);
-  const [form, setForm] = useState({
-    name: "", zip: "", address: "", phone: "",
-  });
+  const [lang, setLang] = useState<"ja" | "zh" | "en">("ja");
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const l = t[lang];
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(total.toString());
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  useEffect(() => {
+    setCart(getCart());
+    function onUpdate() { setCart(getCart()); }
+    window.addEventListener("cart-update", onUpdate);
+    return () => window.removeEventListener("cart-update", onUpdate);
+  }, []);
 
-  const handleOrder = async (e: any) => {
-    e.preventDefault();
-    await fetch("/api/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items, total, ...form }),
-    });
-    setStep("payment");
-  };
+  const total = getCartTotal(cart);
 
-  // カートが空
-  if (items.length === 0 && step === "cart") {
+  if (cart.length === 0) {
     return (
-      <main className="max-w-md mx-auto p-6 text-center">
-        <p className="text-gray-500 mt-20">カートは空です</p>
-        <a href="/" className="block mt-4 underline text-sm">トップへ戻る</a>
-      </main>
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4 p-4">
+        <p className="text-gray-400">{l.empty}</p>
+        <a href="/" className="bg-black text-white px-6 py-3 rounded-xl font-bold text-sm">
+          {l.back}
+        </a>
+      </div>
     );
   }
 
-  // STEP1: カート確認
-  if (step === "cart") return (
-    <main className="max-w-md mx-auto p-6 bg-white text-black">
-      <h1 className="text-xl font-bold mb-6">カート</h1>
-
-      <div className="space-y-4">
-        {items.map(item => (
-          <div key={item.id} className="flex items-center gap-4 border-b pb-4">
-            <img src={item.image} className="w-16 h-16 object-cover rounded" />
-            <div className="flex-1">
-              <p className="font-bold text-sm">{item.nameJa}</p>
-              <p className="text-rose-600">¥{item.salePrice.toLocaleString()}</p>
-              <p className="text-xs text-gray-400">×{item.qty}</p>
-            </div>
+  return (
+    <main className="bg-gray-50 min-h-screen pb-32">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white shadow-sm flex items-center justify-between px-4 py-3">
+        <a href="/" className="text-sm text-gray-600">&#8592;</a>
+        <h1 className="font-bold">{l.title}</h1>
+        <div className="flex gap-0.5 text-[10px] bg-gray-100 px-0.5 py-0.5 rounded-full">
+          {(["ja", "zh", "en"] as const).map((code) => (
             <button
-              onClick={() => removeItem(item.id)}
-              className="text-gray-400 text-sm"
-            >削除</button>
+              key={code}
+              onClick={() => setLang(code)}
+              className={`px-2 py-1 rounded-full transition ${lang === code ? "bg-black text-white" : ""}`}
+            >
+              {code === "ja" ? "JP" : code === "zh" ? "CN" : "EN"}
+            </button>
+          ))}
+        </div>
+      </header>
+
+      {/* Cart Items */}
+      <div className="px-4 pt-4 space-y-3">
+        {cart.map((item) => (
+          <div key={item.id} className="bg-white rounded-2xl p-3 flex gap-3 shadow-sm">
+            <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-xl flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{item.name}</p>
+              <p className="text-red-600 font-bold text-sm mt-1">
+                {l.yen}{item.price.toLocaleString()}
+              </p>
+              <div className="flex items-center justify-between mt-2">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                    className="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center text-sm"
+                  >
+                    -
+                  </button>
+                  <span className="text-sm font-bold w-5 text-center">{item.quantity}</span>
+                  <button
+                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                    className="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center text-sm"
+                  >
+                    +
+                  </button>
+                </div>
+                <button
+                  onClick={() => updateQuantity(item.id, 0)}
+                  className="text-xs text-gray-400"
+                >
+                  {l.remove}
+                </button>
+              </div>
+            </div>
           </div>
         ))}
       </div>
 
-      <div className="mt-6 text-right">
-        <p className="text-lg font-bold">合計: ¥{total.toLocaleString()}</p>
-        <p className="text-xs text-gray-400">（送料込み）</p>
-      </div>
-
-      <button
-        onClick={() => setStep("form")}
-        className="w-full mt-6 bg-black text-white py-3 rounded font-bold"
-      >
-        注文情報を入力する
-      </button>
-    </main>
-  );
-
-  // STEP2: 注文フォーム
-  if (step === "form") return (
-    <main className="max-w-md mx-auto p-6 bg-white text-black">
-      <h1 className="text-xl font-bold mb-6">お届け先</h1>
-
-      <form onSubmit={handleOrder} className="space-y-4">
-        <div>
-          <label className="text-sm font-bold block mb-1">お名前</label>
-          <input
-            value={form.name}
-            onChange={e => setForm({ ...form, name: e.target.value })}
-            placeholder="山田 花子"
-            className="w-full border px-3 py-2 rounded"
-            required
-          />
+      {/* Fixed Bottom */}
+      <div className="fixed bottom-0 left-0 w-full bg-white border-t shadow-lg px-4 py-4 z-50">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm text-gray-500">{l.total}</span>
+          <span className="text-2xl font-black text-red-600">{l.yen}{total.toLocaleString()}</span>
         </div>
-        <div>
-          <label className="text-sm font-bold block mb-1">郵便番号</label>
-          <input
-            value={form.zip}
-            onChange={e => setForm({ ...form, zip: e.target.value })}
-            placeholder="123-4567"
-            className="w-full border px-3 py-2 rounded"
-            required
-          />
-        </div>
-        <div>
-          <label className="text-sm font-bold block mb-1">住所</label>
-          <input
-            value={form.address}
-            onChange={e => setForm({ ...form, address: e.target.value })}
-            placeholder="東京都渋谷区..."
-            className="w-full border px-3 py-2 rounded"
-            required
-          />
-        </div>
-        <div>
-          <label className="text-sm font-bold block mb-1">電話番号</label>
-          <input
-            value={form.phone}
-            onChange={e => setForm({ ...form, phone: e.target.value })}
-            placeholder="090-1234-5678"
-            className="w-full border px-3 py-2 rounded"
-            required
-          />
-        </div>
-
-        <div className="bg-gray-50 rounded p-4 text-right">
-          <p className="font-bold">合計: ¥{total.toLocaleString()}</p>
-        </div>
-
-        <button
-          type="submit"
-          className="w-full bg-black text-white py-3 rounded font-bold"
+        <a
+          href="/checkout"
+          className="block w-full bg-black text-white text-center py-4 rounded-xl font-bold text-lg"
         >
-          支払いへ進む
-        </button>
-      </form>
-    </main>
-  );
-
-  // STEP3: PayPay支払い
-  return (
-    <main className="max-w-md mx-auto p-6 bg-white text-black text-center">
-      <h1 className="text-xl font-bold mb-2">PayPayで支払う</h1>
-      <p className="text-gray-500 text-sm mb-6">以下の金額をPayPayで送金してください</p>
-
-      {/* 金額 */}
-      <div className="bg-rose-50 rounded-xl p-6 mb-4">
-        <p className="text-4xl font-bold text-rose-600">
-          ¥{total.toLocaleString()}
-        </p>
+          {l.checkout}
+        </a>
       </div>
-
-      {/* コピーボタン */}
-      <button
-        onClick={handleCopy}
-        className="w-full border-2 border-black py-3 rounded font-bold mb-4"
-      >
-        {copied ? "✓ コピーしました" : "金額をコピーする"}
-      </button>
-
-      {/* PayPayへ */}
-      <a
-        href={PAYPAY_URL}
-        target="_blank"
-        className="block w-full bg-red-500 text-white py-3 rounded font-bold mb-6"
-      >
-        PayPayアプリで支払う
-      </a>
-
-      <div className="text-sm text-gray-500 space-y-1 text-left bg-gray-50 rounded p-4">
-        <p className="font-bold text-black mb-2">支払い手順</p>
-        <p>1. 「金額をコピーする」をタップ</p>
-        <p>2. 「PayPayアプリで支払う」をタップ</p>
-        <p>3. 金額欄に貼り付けて送金</p>
-        <p>4. 支払い完了後、LINEにてご連絡ください</p>
-      </div>
-
-      <a
-        href="https://line.me/R/ti/p/@143xkgim"
-        target="_blank"
-        className="block mt-4 w-full bg-green-500 text-white py-3 rounded font-bold"
-      >
-        LINEで連絡する
-      </a>
     </main>
   );
 }

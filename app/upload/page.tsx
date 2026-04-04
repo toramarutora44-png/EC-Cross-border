@@ -318,25 +318,21 @@ export default function UploadPage() {
                   type="text"
                   placeholder={l.productNameEx}
                   value={name}
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""));
-                  }}
+                  onChange={(e) => setName(e.target.value)}
                   maxLength={30}
                   className="w-full border rounded-xl px-4 py-3 text-sm"
                 />
                 <p className="text-xs text-gray-300 text-right mt-1">{name.length}/30</p>
-                {slug && (
-                  <div className="mt-2">
-                    <label className="text-xs text-gray-400 block mb-1">URL slug（編集可）</label>
-                    <input
-                      type="text"
-                      value={slug}
-                      onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                      className="w-full border rounded-xl px-4 py-2 text-xs text-gray-600"
-                    />
-                  </div>
-                )}
+                <div className="mt-2">
+                  <label className="text-xs text-gray-400 block mb-1">URL slug * (英数字・ハイフンのみ　例: plush-bear)</label>
+                  <input
+                    type="text"
+                    placeholder="plush-bear-keychain"
+                    value={slug}
+                    onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                    className="w-full border rounded-xl px-4 py-2 text-sm"
+                  />
+                </div>
               </div>
 
               <div>

@@ -79,9 +79,8 @@ export default function ProductPage() {
         if (!found) return setProduct(null);
         setProduct(found);
 
-        const needsFill =
-          !found.trend_reason || !found.use_scene || !found.good_review || !found.features;
-        if (needsFill) {
+        // 常にAI翻訳を取得（DB値は入力として渡すだけ）
+        {
           try {
             const res = await fetch("/api/fill", {
               method: "POST",
@@ -133,11 +132,12 @@ export default function ProductPage() {
   const price = product.sale_price || product.price;
   const name = product.name_ja || product.name;
   const f = filled?.[lang] || {};
-  const trendReason = product.trend_reason || f.trend_reason;
-  const useScene = product.use_scene || f.use_scene;
-  const goodReview = product.good_review || f.good_review;
+  // AI翻訳を優先、なければDB値（ローディング中など）
+  const trendReason = f.trend_reason || product.trend_reason;
+  const useScene = f.use_scene || product.use_scene;
+  const goodReview = f.good_review || product.good_review;
   const badReview = product.bad_review;
-  const features = product.features || f.features;
+  const features = f.features || product.features;
 
   const prevImg = () => setImgIndex(i => (i - 1 + images.length) % images.length);
   const nextImg = () => setImgIndex(i => (i + 1) % images.length);

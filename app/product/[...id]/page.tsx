@@ -63,7 +63,7 @@ export default function ProductPage() {
   const l = t[lang];
 
   const [product, setProduct] = useState<any>(null);
-  const [filled, setFilled] = useState<any>({});
+  const [filled, setFilled] = useState<{ ja: any; zh: any; en: any } | null>(null);
   const [imgIndex, setImgIndex] = useState(0);
   const [added, setAdded] = useState(false);
   const { addItem, count } = useCart();
@@ -95,7 +95,15 @@ export default function ProductPage() {
                 features: found.features,
               }),
             });
-            if (res.ok) setFilled(await res.json());
+            if (res.ok) {
+              const aiData = await res.json();
+              // 3言語オブジェクト or 旧形式（jaのみ）に対応
+              if (aiData.ja) {
+                setFilled(aiData);
+              } else {
+                setFilled({ ja: aiData, zh: aiData, en: aiData });
+              }
+            }
           } catch {}
         }
       });
@@ -124,11 +132,12 @@ export default function ProductPage() {
   const images: string[] = product.images || [];
   const price = product.sale_price || product.price;
   const name = product.name_ja || product.name;
-  const trendReason = product.trend_reason || filled.trend_reason;
-  const useScene = product.use_scene || filled.use_scene;
-  const goodReview = product.good_review || filled.good_review;
+  const f = filled?.[lang] || {};
+  const trendReason = product.trend_reason || f.trend_reason;
+  const useScene = product.use_scene || f.use_scene;
+  const goodReview = product.good_review || f.good_review;
   const badReview = product.bad_review;
-  const features = product.features || filled.features;
+  const features = product.features || f.features;
 
   const prevImg = () => setImgIndex(i => (i - 1 + images.length) % images.length);
   const nextImg = () => setImgIndex(i => (i + 1) % images.length);

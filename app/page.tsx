@@ -226,10 +226,27 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero */}
-      {featured && featured.images?.[0] ? (
-        <section className="px-4 pt-4">
-          <a href={`/product/${featured.id}`} className="block relative rounded-3xl overflow-hidden shadow-lg">
+      {/* ブランドバナー（常時表示） */}
+      <section className="px-4 pt-4">
+        <div className="relative rounded-3xl overflow-hidden shadow-lg">
+          <img
+            src="/hero-bg.png"
+            alt="HaoHao"
+            className="w-full object-cover object-top"
+            style={{ maxHeight: 200 }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+            <p className="text-lg font-black">{l.tagline}</p>
+            <p className="text-xs opacity-75 mt-0.5">{l.heroSub}</p>
+          </div>
+        </div>
+      </section>
+
+      {/* おすすめ商品ヒーロー */}
+      {featured && featured.images?.[0] && (
+        <section className="px-4 pt-3">
+          <a href={`/product/${featured.id}`} className="block relative rounded-3xl overflow-hidden shadow-md">
             <img src={featured.images[0]} alt={featured.name} className="w-full aspect-[4/3] object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-5">
@@ -245,17 +262,6 @@ export default function Home() {
               </div>
             </div>
           </a>
-        </section>
-      ) : (
-        <section className="px-4 pt-4">
-          <div className="relative rounded-3xl overflow-hidden shadow-lg">
-            <img src="/hero-bg.png" alt="HaoHao" className="w-full object-cover" style={{ maxHeight: 320 }} />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-              <p className="text-2xl font-black mb-1">{l.tagline}</p>
-              <p className="text-sm opacity-80">{l.heroSub}</p>
-            </div>
-          </div>
         </section>
       )}
 

@@ -117,6 +117,9 @@ export default function UploadPage() {
   const [previews, setPreviews] = useState<{ url: string; isVideo: boolean }[]>([]);
   const [uploading, setUploading] = useState(false);
   const [done, setDone] = useState(false);
+  const [doneProductId, setDoneProductId] = useState("");
+  const [snsGenerating, setSnsGenerating] = useState(false);
+  const [snsImages, setSnsImages] = useState<Record<string, string> | null>(null);
   const [error, setError] = useState("");
   const [showPriceDetail, setShowPriceDetail] = useState(false);
 
@@ -219,6 +222,7 @@ export default function UploadPage() {
         .eq("id", productId);
       if (updateError) throw updateError;
 
+      setDoneProductId(productId);
       setDone(true);
     } catch (err: any) {
       setError(err.message || "Error");
@@ -243,17 +247,65 @@ export default function UploadPage() {
     setError("");
   }
 
+  async function handleGenerateSnsImages() {
+    setSnsGenerating(true);
+    try {
+      const res = await fetch("/api/sns-images", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: doneProductId }),
+      });
+      const data = await res.json();
+      if (res.ok) setSnsImages(data.sns_images);
+      else setError(data.error || "SNS画像生成エラー");
+    } catch {
+      setError("SNS画像生成エラー");
+    } finally {
+      setSnsGenerating(false);
+    }
+  }
+
   if (done) {
+    const platformLabels: Record<string, string> = {
+      instagram: "Instagram", tiktok: "TikTok", x: "X", threads: "Threads"
+    };
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
-          <div className="text-5xl mb-4 text-green-500">&#10003;</div>
-          <h2 className="text-xl font-bold mb-2">{l.success}</h2>
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="bg-white rounded-2xl shadow-lg p-6 max-w-md mx-auto text-center">
+          <div className="text-5xl mb-3 text-green-500">&#10003;</div>
+          <h2 className="text-xl font-bold mb-1">{l.success}</h2>
           {estimatedJPY > 0 && (
-            <p className="text-gray-500 text-sm mb-4">
+            <p className="text-gray-400 text-sm mb-4">
               {lang === "cn" ? "日本售价" : "Japan price"}: ¥{estimatedJPY.toLocaleString()}
             </p>
           )}
+
+          {/* SNS画像生成 */}
+          {!snsImages ? (
+            <button
+              onClick={handleGenerateSnsImages}
+              disabled={snsGenerating}
+              className="w-full bg-rose-500 text-white py-3 rounded-xl font-bold mb-3 disabled:opacity-50"
+            >
+              {snsGenerating ? "生成中..." : "📸 SNS用画像を生成する"}
+            </button>
+          ) : (
+            <div className="mb-4">
+              <p className="text-sm font-bold text-gray-600 mb-3">SNS用画像</p>
+              <div className="grid grid-cols-2 gap-2">
+                {Object.entries(snsImages).map(([platform, url]) => (
+                  <a key={platform} href={url} target="_blank" rel="noopener noreferrer"
+                    className="block border rounded-xl overflow-hidden">
+                    <img src={url} alt={platform} className="w-full aspect-square object-cover" />
+                    <p className="text-xs text-center py-1 text-gray-500">{platformLabels[platform] || platform}</p>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {error && <p className="text-red-500 text-xs mb-3">{error}</p>}
+
           <button onClick={reset} className="w-full bg-black text-white py-3 rounded-xl font-bold">
             {l.addMore}
           </button>

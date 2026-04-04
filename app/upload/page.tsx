@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { pinyin } from "pinyin-pro";
 import { supabase } from "@/lib/supabase";
 
 const CATEGORIES = [
@@ -318,7 +319,13 @@ export default function UploadPage() {
                   type="text"
                   placeholder={l.productNameEx}
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setName(val);
+                    const converted = pinyin(val, { toneType: "none", separator: "-" });
+                    const generated = converted.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+                    setSlug(generated || val.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""));
+                  }}
                   maxLength={30}
                   className="w-full border rounded-xl px-4 py-3 text-sm"
                 />

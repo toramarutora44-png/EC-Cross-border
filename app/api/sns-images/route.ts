@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
+import satori from "satori";
+import { Resvg } from "@resvg/resvg-js";
+import Anthropic from "@anthropic-ai/sdk";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
+const anthropic = new Anthropic({ apiKey: process.env.CLAUDE_API });
 
 const PLATFORMS = [
   { key: "instagram", width: 1080, height: 1080, label: "Instagram" },
@@ -14,35 +18,103 @@ const PLATFORMS = [
   { key: "threads",  width: 1080, height: 1080, label: "Threads" },
 ];
 
-// グラデーション + 価格バッジをSVGで描画（フォント不要・シェイプのみ）
-function buildOverlay(price: number | null, width: number, height: number): Buffer {
-  const boxH = Math.round(height * 0.18);
-  const badgeW = 180;
-  const badgeH = 44;
-  const badgeX = width - badgeW - 20;
-  const badgeY = 20;
+// フォントをjsDelivrから取得（woff形式、satori対応）
+let fontCache: ArrayBuffer | null = null;
+async function getFont(): Promise<ArrayBuffer> {
+  if (fontCache) return fontCache;
+  const res = await fetch(
+    "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-jp@5/files/noto-sans-jp-japanese-400-normal.woff"
+  );
+  fontCache = await res.arrayBuffer();
+  return fontCache;
+}
 
-  // 価格テキスト（ASCII数字のみ・シンプルなフォント指定）
-  const priceStr = price ? `JPY ${price.toLocaleString()}` : "";
-  const fontSize = width > 1000 ? 48 : 34;
+// Claude Visionで中国語テキストを検出・日本語翻訳
+async function detectAndTranslateChinese(imageUrl: string): Promise<string | null> {
+  try {
+    const message = await anthropic.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 200,
+      messages: [{
+        role: "user",
+        content: [
+          {
+            type: "image",
+            source: { type: "url", url: imageUrl },
+          },
+          {
+            type: "text",
+            text: `この画像に中国語のテキストが含まれていますか？
+含まれている場合、その内容を自然な日本語に翻訳して20文字以内で返してください。
+含まれていない場合は「なし」とだけ返してください。
+翻訳のみ返し、説明不要。`,
+          },
+        ],
+      }],
+    });
+    const result = message.content[0].type === "text" ? message.content[0].text.trim() : "なし";
+    if (result === "なし" || result === "" || result.includes("なし")) return null;
+    return result.slice(0, 30);
+  } catch {
+    return null;
+  }
+}
 
-  const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#000" stop-opacity="0"/>
-      <stop offset="100%" stop-color="#000" stop-opacity="0.7"/>
-    </linearGradient>
-  </defs>
-  <rect x="0" y="${height - boxH}" width="${width}" height="${boxH}" fill="url(#g)"/>
-  ${priceStr ? `<text x="${Math.round(width * 0.04)}" y="${height - Math.round(boxH * 0.25)}"
-    font-family="monospace" font-size="${fontSize}" font-weight="bold"
-    fill="#FFB7C5" letter-spacing="2">${priceStr}</text>` : ""}
-  <rect x="${badgeX}" y="${badgeY}" width="${badgeW}" height="${badgeH}" rx="22" fill="#C9637A" opacity="0.9"/>
-  <text x="${badgeX + badgeW / 2}" y="${badgeY + badgeH * 0.68}"
-    text-anchor="middle" font-family="monospace" font-size="18" font-weight="bold" fill="white">HAOHAO SHOP</text>
-</svg>`;
+// satori + resvg で日本語テキストオーバーレイPNGを生成
+async function buildJapaneseOverlay(text: string, width: number, height: number): Promise<Buffer> {
+  const font = await getFont();
+  const fontSize = width > 1000 ? 42 : 30;
+  const boxHeight = Math.round(height * 0.15);
 
-  return Buffer.from(svg);
+  const svg = await satori(
+    {
+      type: "div",
+      props: {
+        style: {
+          display: "flex",
+          alignItems: "flex-end",
+          width: `${width}px`,
+          height: `${height}px`,
+          backgroundColor: "transparent",
+        },
+        children: {
+          type: "div",
+          props: {
+            style: {
+              display: "flex",
+              width: `${width}px`,
+              height: `${boxHeight}px`,
+              background: "linear-gradient(to bottom, transparent, rgba(0,0,0,0.75))",
+              alignItems: "center",
+              paddingLeft: "32px",
+              paddingRight: "32px",
+            },
+            children: {
+              type: "span",
+              props: {
+                style: {
+                  fontFamily: "NotoSansJP",
+                  fontSize: `${fontSize}px`,
+                  fontWeight: 400,
+                  color: "#FFFFFF",
+                  textShadow: "0 1px 4px rgba(0,0,0,0.8)",
+                },
+                children: text,
+              },
+            },
+          },
+        },
+      },
+    },
+    {
+      width,
+      height,
+      fonts: [{ name: "NotoSansJP", data: font, weight: 400, style: "normal" }],
+    }
+  );
+
+  const resvg = new Resvg(svg, { fitTo: { mode: "width", value: width } });
+  return Buffer.from(resvg.render().asPng());
 }
 
 export async function POST(req: NextRequest) {
@@ -61,7 +133,8 @@ export async function POST(req: NextRequest) {
     const imageUrls: string[] = product.images || [];
     if (imageUrls.length === 0) return NextResponse.json({ error: "no images" }, { status: 400 });
 
-    const price = product.sale_price || product.price || null;
+    // 中国語テキスト検出・翻訳
+    const japaneseText = await detectAndTranslateChinese(imageUrls[0]);
 
     const imgRes = await fetch(imageUrls[0]);
     const imgBuffer = Buffer.from(await imgRes.arrayBuffer());
@@ -76,14 +149,17 @@ export async function POST(req: NextRequest) {
         .toBuffer();
 
       let final: Buffer;
-      try {
-        const overlay = buildOverlay(price, width, height);
-        final = await sharp(resized)
-          .composite([{ input: overlay, top: 0, left: 0 }])
-          .jpeg({ quality: 90 })
-          .toBuffer();
-      } catch {
-        // オーバーレイ失敗時はリサイズのみ
+      if (japaneseText) {
+        try {
+          const overlay = await buildJapaneseOverlay(japaneseText, width, height);
+          final = await sharp(resized)
+            .composite([{ input: overlay, top: 0, left: 0 }])
+            .jpeg({ quality: 90 })
+            .toBuffer();
+        } catch {
+          final = await sharp(resized).jpeg({ quality: 90 }).toBuffer();
+        }
+      } else {
         final = await sharp(resized).jpeg({ quality: 90 }).toBuffer();
       }
 
@@ -104,7 +180,7 @@ export async function POST(req: NextRequest) {
       .update({ sns_images: results })
       .eq("id", productId);
 
-    return NextResponse.json({ success: true, sns_images: results });
+    return NextResponse.json({ success: true, sns_images: results, translated_text: japaneseText });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

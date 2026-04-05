@@ -14,37 +14,23 @@ const PLATFORMS = [
   { key: "threads",  width: 1080, height: 1080, label: "Threads" },
 ];
 
-function buildOverlaySvg(name: string, price: number | null, width: number, height: number): Buffer {
-  const priceText = price ? `¥${price.toLocaleString()}` : "";
-  const fontSize = width > 1000 ? 44 : 32;
+function buildOverlaySvg(price: number | null, width: number, height: number): Buffer {
+  const priceText = price ? `JPY ${price.toLocaleString()}` : "";
   const priceFontSize = width > 1000 ? 52 : 38;
   const padding = 40;
-  const boxHeight = 160;
+  const boxHeight = 140;
 
-  const svg = `
-<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-  <!-- 下部グラデーションオーバーレイ -->
+  const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="black" stop-opacity="0"/>
       <stop offset="100%" stop-color="black" stop-opacity="0.75"/>
     </linearGradient>
-    <style>
-      @font-face { font-family: 'sans'; }
-    </style>
   </defs>
   <rect x="0" y="${height - boxHeight}" width="${width}" height="${boxHeight}" fill="url(#grad)"/>
-
-  <!-- 価格 -->
-  ${priceText ? `<text x="${padding}" y="${height - 70}" font-size="${priceFontSize}" font-weight="bold" fill="#FFB7C5" font-family="Arial, sans-serif">${priceText}</text>` : ""}
-
-  <!-- 商品名 -->
-  <text x="${padding}" y="${height - 24}" font-size="${fontSize}" fill="white" font-family="Arial, sans-serif"
-    textLength="${width - padding * 2}" lengthAdjust="spacingAndGlyphs">${name.slice(0, 20)}</text>
-
-  <!-- 好好ロゴ（右上） -->
-  <rect x="${width - 110}" y="20" width="90" height="36" rx="18" fill="rgba(201,99,122,0.85)"/>
-  <text x="${width - 65}" y="44" text-anchor="middle" font-size="18" font-weight="bold" fill="white" font-family="Arial, sans-serif">好好</text>
+  ${priceText ? `<text x="${padding}" y="${height - 50}" font-size="${priceFontSize}" font-weight="bold" fill="#FFB7C5" font-family="DejaVu Sans,Liberation Sans,sans-serif">${priceText}</text>` : ""}
+  <rect x="${width - 100}" y="20" width="80" height="32" rx="16" fill="rgba(201,99,122,0.85)"/>
+  <text x="${width - 60}" y="42" text-anchor="middle" font-size="16" font-weight="bold" fill="white" font-family="DejaVu Sans,Liberation Sans,sans-serif">HAOHAO</text>
 </svg>`;
 
   return Buffer.from(svg);
@@ -84,7 +70,7 @@ export async function POST(req: NextRequest) {
         .toBuffer();
 
       // テキストオーバーレイ合成
-      const overlay = buildOverlaySvg(name, price, width, height);
+      const overlay = buildOverlaySvg(price, width, height);
       const final = await sharp(resized)
         .composite([{ input: overlay, top: 0, left: 0 }])
         .jpeg({ quality: 90 })

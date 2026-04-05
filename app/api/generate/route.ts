@@ -79,8 +79,8 @@ X: ${lang === "ja" ? "7:00-8:00, 12:00, 20:00-23:00 JST" : lang === "zh" ? "8:00
 Threads: ${lang === "ja" ? "8:00, 12:00, 21:00 JST" : lang === "zh" ? "9:00, 12:00, 21:00 CST" : "10:00, 19:00 local"}
 
 【商品情報】
-商品名: ${product.name}
-価格: ${product.price ? `¥${product.price.toLocaleString()}` : "未設定"}
+商品名: ${product.name_ja || product.name}
+価格: ${product.sale_price ? `¥${product.sale_price.toLocaleString()}` : product.price ? `¥${product.price.toLocaleString()}` : "未設定"}
 流行理由: ${product.trend_reason || "未入力"}
 使用シーン: ${product.use_scene || "未入力"}
 良い口コミ: ${product.good_review || "未入力"}

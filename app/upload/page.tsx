@@ -122,6 +122,8 @@ export default function UploadPage() {
   const [snsImages, setSnsImages] = useState<Record<string, string> | null>(null);
   const [error, setError] = useState("");
   const [showPriceDetail, setShowPriceDetail] = useState(false);
+  const [brief, setBrief] = useState<any>(null);
+  const [xScheduled, setXScheduled] = useState(false);
 
   const estimatedJPY = useMemo(() => {
     const cny = parseFloat(priceCNY);
@@ -222,6 +224,40 @@ export default function UploadPage() {
         .eq("id", productId);
       if (updateError) throw updateError;
 
+      // 5. X予約投稿 + 制作ブリーフ生成
+      try {
+        const genRes = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId, lang: "ja" }),
+        });
+        if (genRes.ok) {
+          const genData = await genRes.json();
+          const captions: Record<string, any> = {};
+          for (const r of genData.results || []) {
+            captions[r.platform.toLowerCase()] = { caption: r.caption, hashtags: r.hashtags };
+          }
+
+          // X予約投稿
+          await fetch("/api/scheduled-posts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              product_id: productId,
+              platforms: ["x"],
+              captions,
+              image_url: imageUrls[0] || null,
+            }),
+          });
+          setXScheduled(true);
+
+          // 制作ブリーフ（Instagram/TikTok用）
+          const igBrief = genData.results?.find((r: any) => r.platform === "Instagram");
+          const ttBrief = genData.results?.find((r: any) => r.platform === "TikTok");
+          setBrief({ instagram: igBrief, tiktok: ttBrief, trends: genData.trends_used });
+        }
+      } catch {}
+
       setDoneProductId(productId);
       setDone(true);
     } catch (err: any) {
@@ -301,6 +337,55 @@ export default function UploadPage() {
                   </a>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* X予約完了 */}
+          {xScheduled && (
+            <div className="bg-gray-900 text-white rounded-xl px-4 py-3 mb-3 text-sm text-left">
+              <p className="font-bold mb-1">✓ X 予約投稿完了</p>
+              <p className="text-gray-400 text-xs">最適時間に自動配信されます</p>
+            </div>
+          )}
+
+          {/* 制作ブリーフ */}
+          {brief && (
+            <div className="text-left mb-4">
+              <p className="text-sm font-bold text-gray-700 mb-3">📋 Instagram / TikTok 制作ブリーフ</p>
+
+              {brief.instagram && (
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 mb-3">
+                  <p className="text-xs font-bold text-purple-600 mb-2">Instagram</p>
+                  <p className="text-xs text-gray-600 mb-2 whitespace-pre-wrap">{brief.instagram.hook}</p>
+                  <p className="text-xs text-gray-500 whitespace-pre-wrap">{brief.instagram.structure}</p>
+                  <p className="text-xs text-blue-500 mt-2">{brief.instagram.hashtags}</p>
+                  <button
+                    onClick={() => navigator.clipboard.writeText(`${brief.instagram.caption}\n\n${brief.instagram.hashtags}`)}
+                    className="mt-2 text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full"
+                  >
+                    コピー
+                  </button>
+                </div>
+              )}
+
+              {brief.tiktok && (
+                <div className="bg-gray-900 rounded-xl p-4 mb-3">
+                  <p className="text-xs font-bold text-white mb-2">TikTok</p>
+                  <p className="text-xs text-gray-300 mb-2 whitespace-pre-wrap">{brief.tiktok.hook}</p>
+                  <p className="text-xs text-gray-400 whitespace-pre-wrap">{brief.tiktok.structure}</p>
+                  <p className="text-xs text-blue-400 mt-2">{brief.tiktok.hashtags}</p>
+                  <button
+                    onClick={() => navigator.clipboard.writeText(`${brief.tiktok.caption}\n\n${brief.tiktok.hashtags}`)}
+                    className="mt-2 text-xs bg-white/10 text-white px-3 py-1 rounded-full"
+                  >
+                    コピー
+                  </button>
+                </div>
+              )}
+
+              {brief.trends && (
+                <p className="text-xs text-gray-400">トレンド反映: {brief.trends.slice(0, 60)}...</p>
+              )}
             </div>
           )}
 

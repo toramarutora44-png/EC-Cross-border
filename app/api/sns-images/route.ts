@@ -14,23 +14,32 @@ const PLATFORMS = [
   { key: "threads",  width: 1080, height: 1080, label: "Threads" },
 ];
 
-function buildOverlaySvg(price: number | null, width: number, height: number): Buffer {
-  const priceText = price ? `JPY ${price.toLocaleString()}` : "";
-  const priceFontSize = width > 1000 ? 52 : 38;
-  const padding = 40;
-  const boxHeight = 140;
+// グラデーション + 価格バッジをSVGで描画（フォント不要・シェイプのみ）
+function buildOverlay(price: number | null, width: number, height: number): Buffer {
+  const boxH = Math.round(height * 0.18);
+  const badgeW = 180;
+  const badgeH = 44;
+  const badgeX = width - badgeW - 20;
+  const badgeY = 20;
+
+  // 価格テキスト（ASCII数字のみ・シンプルなフォント指定）
+  const priceStr = price ? `JPY ${price.toLocaleString()}` : "";
+  const fontSize = width > 1000 ? 48 : 34;
 
   const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="black" stop-opacity="0"/>
-      <stop offset="100%" stop-color="black" stop-opacity="0.75"/>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0.7"/>
     </linearGradient>
   </defs>
-  <rect x="0" y="${height - boxHeight}" width="${width}" height="${boxHeight}" fill="url(#grad)"/>
-  ${priceText ? `<text x="${padding}" y="${height - 50}" font-size="${priceFontSize}" font-weight="bold" fill="#FFB7C5" font-family="DejaVu Sans,Liberation Sans,sans-serif">${priceText}</text>` : ""}
-  <rect x="${width - 100}" y="20" width="80" height="32" rx="16" fill="rgba(201,99,122,0.85)"/>
-  <text x="${width - 60}" y="42" text-anchor="middle" font-size="16" font-weight="bold" fill="white" font-family="DejaVu Sans,Liberation Sans,sans-serif">HAOHAO</text>
+  <rect x="0" y="${height - boxH}" width="${width}" height="${boxH}" fill="url(#g)"/>
+  ${priceStr ? `<text x="${Math.round(width * 0.04)}" y="${height - Math.round(boxH * 0.25)}"
+    font-family="monospace" font-size="${fontSize}" font-weight="bold"
+    fill="#FFB7C5" letter-spacing="2">${priceStr}</text>` : ""}
+  <rect x="${badgeX}" y="${badgeY}" width="${badgeW}" height="${badgeH}" rx="22" fill="#C9637A" opacity="0.9"/>
+  <text x="${badgeX + badgeW / 2}" y="${badgeY + badgeH * 0.68}"
+    text-anchor="middle" font-family="monospace" font-size="18" font-weight="bold" fill="white">HAOHAO SHOP</text>
 </svg>`;
 
   return Buffer.from(svg);
@@ -52,10 +61,8 @@ export async function POST(req: NextRequest) {
     const imageUrls: string[] = product.images || [];
     if (imageUrls.length === 0) return NextResponse.json({ error: "no images" }, { status: 400 });
 
-    const name = product.name_ja || product.name || "";
     const price = product.sale_price || product.price || null;
 
-    // 最初の画像を取得
     const imgRes = await fetch(imageUrls[0]);
     const imgBuffer = Buffer.from(await imgRes.arrayBuffer());
 
@@ -64,19 +71,22 @@ export async function POST(req: NextRequest) {
     for (const platform of PLATFORMS) {
       const { key, width, height } = platform;
 
-      // リサイズ
       const resized = await sharp(imgBuffer)
         .resize(width, height, { fit: "cover", position: "center" })
         .toBuffer();
 
-      // テキストオーバーレイ合成
-      const overlay = buildOverlaySvg(price, width, height);
-      const final = await sharp(resized)
-        .composite([{ input: overlay, top: 0, left: 0 }])
-        .jpeg({ quality: 90 })
-        .toBuffer();
+      let final: Buffer;
+      try {
+        const overlay = buildOverlay(price, width, height);
+        final = await sharp(resized)
+          .composite([{ input: overlay, top: 0, left: 0 }])
+          .jpeg({ quality: 90 })
+          .toBuffer();
+      } catch {
+        // オーバーレイ失敗時はリサイズのみ
+        final = await sharp(resized).jpeg({ quality: 90 }).toBuffer();
+      }
 
-      // Supabase Storageにアップロード
       const storagePath = `${productId}/sns_${key}.jpg`;
       await supabase.storage
         .from("products")
@@ -89,7 +99,6 @@ export async function POST(req: NextRequest) {
       results[key] = urlData.publicUrl;
     }
 
-    // DBに保存
     await supabase
       .from("products")
       .update({ sns_images: results })

@@ -226,10 +226,11 @@ export default function UploadPage() {
 
       // 5. X予約投稿 + 制作ブリーフ生成
       try {
+        const genLang = lang === "cn" ? "zh" : lang === "en" ? "en" : "ja";
         const genRes = await fetch("/api/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ productId, lang: "ja" }),
+          body: JSON.stringify({ productId, lang: genLang }),
         });
         const genData = await genRes.json();
         if (!genRes.ok) throw new Error(genData.error || "generate失敗");

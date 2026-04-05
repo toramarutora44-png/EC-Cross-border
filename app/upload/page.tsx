@@ -231,32 +231,36 @@ export default function UploadPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ productId, lang: "ja" }),
         });
-        if (genRes.ok) {
-          const genData = await genRes.json();
-          const captions: Record<string, any> = {};
-          for (const r of genData.results || []) {
-            captions[r.platform.toLowerCase()] = { caption: r.caption, hashtags: r.hashtags };
-          }
+        const genData = await genRes.json();
+        if (!genRes.ok) throw new Error(genData.error || "generate失敗");
 
-          // X予約投稿
-          await fetch("/api/scheduled-posts", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              product_id: productId,
-              platforms: ["x"],
-              captions,
-              image_url: imageUrls[0] || null,
-            }),
-          });
-          setXScheduled(true);
-
-          // 制作ブリーフ（Instagram/TikTok用）
-          const igBrief = genData.results?.find((r: any) => r.platform === "Instagram");
-          const ttBrief = genData.results?.find((r: any) => r.platform === "TikTok");
-          setBrief({ instagram: igBrief, tiktok: ttBrief, trends: genData.trends_used });
+        const captions: Record<string, any> = {};
+        for (const r of genData.results || []) {
+          captions[r.platform.toLowerCase()] = { caption: r.caption, hashtags: r.hashtags };
         }
-      } catch {}
+
+        const schedRes = await fetch("/api/scheduled-posts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            product_id: productId,
+            platforms: ["x"],
+            captions,
+            image_url: imageUrls[0] || null,
+          }),
+        });
+        if (!schedRes.ok) {
+          const schedData = await schedRes.json();
+          throw new Error(schedData.error || "予約投稿失敗");
+        }
+        setXScheduled(true);
+
+        const igBrief = genData.results?.find((r: any) => r.platform === "Instagram");
+        const ttBrief = genData.results?.find((r: any) => r.platform === "TikTok");
+        setBrief({ instagram: igBrief, tiktok: ttBrief, trends: genData.trends_used });
+      } catch (briefErr: any) {
+        setError("SNS生成エラー: " + briefErr.message);
+      }
 
       setDoneProductId(productId);
       setDone(true);

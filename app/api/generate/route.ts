@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import Anthropic from "@anthropic-ai/sdk";
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
+const anthropic = new Anthropic({ apiKey: process.env.CLAUDE_API });
 const SITE_URL = "https://ec-crossborder.vercel.app";
 const LINE_URL = "https://line.me/R/ti/p/@143xkgim";
 
@@ -144,56 +145,34 @@ export async function POST(req: NextRequest) {
     if (!productId) {
       return NextResponse.json({ error: "商品IDが必要です" }, { status: 400 });
     }
-    if (!GEMINI_API_KEY) {
-      return NextResponse.json(
-        { error: "Gemini APIキーが設定されていません。" },
-        { status: 500 }
-      );
-    }
 
     const [productRes, trends] = await Promise.all([
       supabase.from("products").select("*").eq("id", productId).single(),
       fetchTrends(),
     ]);
 
+    if (productRes.error || !productRes.data) {
+      return NextResponse.json({ error: "商品が見つかりません" }, { status: 404 });
+    }
+
     const snsInsights = await fetchSNSInsights(
       productRes.data?.name_ja || productRes.data?.name || "",
       productRes.data?.category || ""
     );
 
-    if (productRes.error || !productRes.data) {
-      return NextResponse.json({ error: "商品が見つかりません" }, { status: 404 });
-    }
+    const message = await anthropic.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 4000,
+      messages: [{
+        role: "user",
+        content: "あなたはSNSマーケティングの専門家です。2025年最新のトレンド分析に基づいて、売上に直結する投稿を生成します。JSON配列のみを返してください。\n\n" + buildPrompt(productRes.data, trends, lang, snsInsights)
+      }],
+    });
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: "あなたはSNSマーケティングの専門家です。2025年最新のトレンド分析に基づいて、売上に直結する投稿を生成します。JSON配列のみを返してください。\n\n" + buildPrompt(productRes.data, trends, lang, snsInsights)
-            }]
-          }],
-          generationConfig: { temperature: 0.8, maxOutputTokens: 4000 },
-        }),
-      }
-    );
-
-    const aiData = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: aiData.error?.message || "AI生成に失敗しました" },
-        { status: 500 }
-      );
-    }
-
-    const content = aiData.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const content = message.content[0].type === "text" ? message.content[0].text : "";
     const jsonMatch = content.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
-      return NextResponse.json({ error: "生成結果の解析に失敗しました" }, { status: 500 });
+      return NextResponse.json({ error: "生成結果の解析に失敗しました", raw: content.slice(0, 200) }, { status: 500 });
     }
 
     const results = JSON.parse(jsonMatch[0]);

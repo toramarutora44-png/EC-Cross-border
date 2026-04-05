@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import Anthropic from "@anthropic-ai/sdk";
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
+const client = new Anthropic({ apiKey: process.env.CLAUDE_API });
 
 export async function POST(req: NextRequest) {
   try {
     const { name, category, trend_reason, use_scene, good_review, features } = await req.json();
-
-    if (!GEMINI_API_KEY) {
-      return NextResponse.json({ error: "no key" }, { status: 500 });
-    }
 
     const prompt = `あなたは日本向けECサイトのコピーライターです。
 以下の商品情報をもとに、購買意欲を自然に高める短い文章を日本語・中国語・英語の3言語で生成してください。
@@ -44,23 +41,13 @@ export async function POST(req: NextRequest) {
   }
 }`;
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 1200 },
-        }),
-      }
-    );
+    const message = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 1200,
+      messages: [{ role: "user", content: prompt }],
+    });
 
-    const data = await response.json();
-    const content = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    if (!content) {
-      return NextResponse.json({ error: "parse error", raw: JSON.stringify(data).slice(0, 300) }, { status: 500 });
-    }
+    const content = message.content[0].type === "text" ? message.content[0].text : "";
     const cleaned = content.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
     const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {

@@ -86,6 +86,12 @@ export default function GeneratePage() {
     setTimeout(() => setCopied(""), 2000);
   }
 
+  function copyImageUrl(url: string) {
+    navigator.clipboard.writeText(url);
+    setCopied("img-" + url);
+    setTimeout(() => setCopied(""), 2000);
+  }
+
   const selected = products.find((p) => p.id === selectedId);
 
   return (
@@ -114,10 +120,22 @@ export default function GeneratePage() {
             ))}
           </select>
           {selected && selected.images && selected.images.length > 0 && (
-            <div className="flex gap-2 mt-3 overflow-x-auto">
-              {selected.images.map((url, i) => (
-                <img key={i} src={url} alt="" className="w-16 h-16 object-cover rounded-lg flex-shrink-0" />
-              ))}
+            <div className="mt-3">
+              <p className="text-xs text-gray-400 mb-2">商品画像（タップでコピー）</p>
+              <div className="flex gap-2 overflow-x-auto">
+                {selected.images.map((url, i) => (
+                  <div key={i} className="relative flex-shrink-0">
+                    <img src={url} alt="" className="w-20 h-20 object-cover rounded-lg" />
+                    <button
+                      onClick={() => copyImageUrl(url)}
+                      className="absolute inset-0 bg-black/40 rounded-lg flex items-center justify-center text-white text-xs font-bold opacity-0 hover:opacity-100 transition-opacity"
+                    >
+                      {copied === "img-" + url ? "✓" : "URL\nコピー"}
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-gray-400 mt-2">※ SNS投稿時は画像を直接ダウンロードして添付してください</p>
             </div>
           )}
         </div>

@@ -93,8 +93,8 @@ Threads: ${lang === "ja" ? "8:00, 12:00, 21:00 JST" : lang === "zh" ? "9:00, 12:
 [
   {
     "platform": "TikTok",
-    "caption": "投稿文（${langLabel}、末尾にLP+DM誘導）",
-    "hashtags": "#タグ1 #タグ2 ...（${langLabel}圏タグ）",
+    "caption": "投稿文（${langLabel}、末尾にLP+DM誘導。ハッシュタグは含めないこと）",
+    "hashtags": "#タグ1 #タグ2 ...（${langLabel}圏タグ。captionとは別に記載）",
     "hook": "冒頭0.5秒フレーズ",
     "structure": "秒単位の動画構成",
     "thumbnail_text": "サムネテキスト（6字以内）",
@@ -104,8 +104,8 @@ Threads: ${lang === "ja" ? "8:00, 12:00, 21:00 JST" : lang === "zh" ? "9:00, 12:
   },
   {
     "platform": "Instagram",
-    "caption": "投稿文（${langLabel}、保存誘導+LP+DM）",
-    "hashtags": "#タグ1 #タグ2 ...（${langLabel}圏タグ）",
+    "caption": "投稿文（${langLabel}、保存誘導+LP+DM。ハッシュタグは含めないこと）",
+    "hashtags": "#タグ1 #タグ2 ...（${langLabel}圏タグ。captionとは別に記載）",
     "hook": "冒頭フレーズ",
     "structure": "カルーセル/リール構成",
     "thumbnail_text": "画像テキスト",
@@ -115,8 +115,8 @@ Threads: ${lang === "ja" ? "8:00, 12:00, 21:00 JST" : lang === "zh" ? "9:00, 12:
   },
   {
     "platform": "X",
-    "caption": "投稿文（${langLabel}、140字以内）",
-    "hashtags": "#タグ1 #タグ2",
+    "caption": "投稿文（${langLabel}、140字以内。ハッシュタグは含めないこと）",
+    "hashtags": "#タグ1 #タグ2（captionとは別に記載）",
     "hook": "冒頭フレーズ",
     "structure": "スレッド構成",
     "thumbnail_text": "画像テキスト",
@@ -126,8 +126,8 @@ Threads: ${lang === "ja" ? "8:00, 12:00, 21:00 JST" : lang === "zh" ? "9:00, 12:
   },
   {
     "platform": "Threads",
-    "caption": "投稿文（${langLabel}、会話的、500字以内）",
-    "hashtags": "#タグ1 #タグ2",
+    "caption": "投稿文（${langLabel}、会話的、500字以内。ハッシュタグは含めないこと）",
+    "hashtags": "#タグ1 #タグ2（captionとは別に記載）",
     "hook": "冒頭フレーズ",
     "structure": "投稿構成",
     "thumbnail_text": "画像テキスト",
